@@ -27,7 +27,7 @@
       <file leaf-file-name="settings.py" pinned="false" current="true" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/mapplas_server/settings.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state line="125" column="33" selection-start="4361" selection-end="4361" vertical-scroll-proportion="2.080292">
+            <state line="31" column="26" selection-start="1008" selection-end="1008" vertical-scroll-proportion="-0.9671533">
               <folding />
             </state>
           </provider>
@@ -277,7 +277,7 @@
   <component name="editorHistoryManager">
     <entry file="file://$PROJECT_DIR$/mapplas_server/settings.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state line="125" column="33" selection-start="4361" selection-end="4361" vertical-scroll-proportion="2.080292">
+        <state line="31" column="26" selection-start="1008" selection-end="1008" vertical-scroll-proportion="-0.9671533">
           <folding />
         </state>
       </provider>
