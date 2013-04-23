@@ -126,7 +126,7 @@ INSTALLED_APPS = (
     # 'django.contrib.admindocs',
     'django.contrib.gis',
     'tastypie',
-    'iphone',
+    'rest_api',
 )
 
 # A sample logging configuration. The only tangible logging
