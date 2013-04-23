@@ -4,7 +4,7 @@
     <list default="true" id="fab22f87-601a-4d83-ae60-e647d2bb404b" name="Default" comment="" />
     <ignored path="mapplas_server.iws" />
     <ignored path=".idea/workspace.xml" />
-    <file path="/settings.py" changelist="fab22f87-601a-4d83-ae60-e647d2bb404b" time="1366699996296" ignored="false" />
+    <file path="/settings.py" changelist="fab22f87-601a-4d83-ae60-e647d2bb404b" time="1366700422723" ignored="false" />
     <option name="TRACKING_ENABLED" value="true" />
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -27,7 +27,7 @@
       <file leaf-file-name="settings.py" pinned="false" current="true" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/mapplas_server/settings.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state line="16" column="19" selection-start="310" selection-end="310" vertical-scroll-proportion="0.2919708">
+            <state line="125" column="33" selection-start="4361" selection-end="4361" vertical-scroll-proportion="2.080292">
               <folding />
             </state>
           </provider>
@@ -277,7 +277,7 @@
   <component name="editorHistoryManager">
     <entry file="file://$PROJECT_DIR$/mapplas_server/settings.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state line="16" column="19" selection-start="310" selection-end="310" vertical-scroll-proportion="0.2919708">
+        <state line="125" column="33" selection-start="4361" selection-end="4361" vertical-scroll-proportion="2.080292">
           <folding />
         </state>
       </provider>
