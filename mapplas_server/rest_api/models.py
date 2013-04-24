@@ -162,7 +162,7 @@ class Ranking(models.Model):
 class Review(models.Model):
     review_id = models.IntegerField(primary_key=True)
     app = models.ForeignKey(Application)
-    language = ('2 Digit ISO', max_length=2)
+    language = models.CharField('2 Digit ISO', max_length=2)
     timestamp = models.DateTimeField()
     user_id = models.IntegerField()
     user_name = models.CharField(max_length=56)
