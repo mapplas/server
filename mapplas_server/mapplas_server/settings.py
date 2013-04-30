@@ -1,4 +1,5 @@
 # Django settings for mapplas_server project.
+import os.path
 
 DEBUG = True
 TEMPLATE_DEBUG = DEBUG
@@ -14,10 +15,10 @@ DATABASES = {
         'ENGINE': 'django.contrib.gis.db.backends.postgis',
         'NAME': 'mapplas_postgis',
 
-        'USER': '',
-        'PASSWORD': '',
-        'HOST': '',                      # Empty for localhost through domain sockets or '127.0.0.1' for localhost through TCP.
-        'PORT': '',                      # Set to empty string for default.
+        'USER': 'postgres',
+        'PASSWORD': 'admin',
+        'HOST': 'ec2-54-244-161-146.us-west-2.compute.amazonaws.com',   # Empty for localhost through domain sockets or '127.0.0.1' for localhost through TCP.
+        'PORT': '',                                                     # Set to empty string for default.
     }
 }
 
