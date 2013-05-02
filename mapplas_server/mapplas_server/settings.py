@@ -3,6 +3,7 @@ import os.path
 
 DEBUG = True
 TEMPLATE_DEBUG = DEBUG
+APPEND_SLASH=False
 
 ADMINS = (
     # ('Your Name', 'your_email@example.com'),
@@ -17,7 +18,7 @@ DATABASES = {
 
         'USER': 'postgres',
         'PASSWORD': 'admin',
-        'HOST': 'ec2-54-244-161-146.us-west-2.compute.amazonaws.com',   # Empty for localhost through domain sockets or '127.0.0.1' for localhost through TCP.
+        'HOST': 'ec2-46-137-150-55.eu-west-1.compute.amazonaws.com',   # Empty for localhost through domain sockets or '127.0.0.1' for localhost through TCP.
         'PORT': '',                                                     # Set to empty string for default.
     }
 }
@@ -94,6 +95,7 @@ TEMPLATE_LOADERS = (
 )
 
 MIDDLEWARE_CLASSES = (
+    #'django.middleware.locale.LocaleMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
@@ -114,6 +116,12 @@ TEMPLATE_DIRS = (
     # Don't forget to use absolute paths, not relative paths.
 )
 
+REST_FRAMEWORK = {
+    'DEFAULT_PERMISSION_CLASSES': (
+        'rest_framework.permissions.AllowAny',
+    )
+}
+
 INSTALLED_APPS = (
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -126,7 +134,8 @@ INSTALLED_APPS = (
     # Uncomment the next line to enable admin documentation:
     # 'django.contrib.admindocs',
     'django.contrib.gis',
-    'tastypie',
+    # REST framework
+    'rest_framework',
     'rest_api',
 )
 
