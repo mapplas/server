@@ -18,17 +18,38 @@ def user_register(request):
 	'''
 	if request.method == 'POST':
 		data = request.POST
-				
-		data['created'] = timezone.now()
-		data['updated'] = timezone.now()
-				
-		serializer = UserSerializer(data=data)
-		
-		if serializer.is_valid():
-			serializer.save()
-			return Response(serializer.data, status=status.HTTP_201_CREATED)
-		else:
-			return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+			
+		try:
+			'''
+			Update database user
+			'''
+			user = User.objects.get(imei=data['imei'])
+			
+			dataToSave = {}
+			dataToSave['updated'] = timezone.now()
+			
+			serializer = UserSerializer(user, data=dataToSave, partial=True)
+			
+			if serializer.is_valid():
+				serializer.save()
+				return Response(serializer.data)
+			else:
+				return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+		except User.DoesNotExist:
+			'''
+			User does not exists into db. Insert.
+			'''
+			data['created'] = timezone.now()
+			data['updated'] = timezone.now()
+					
+			serializer = UserSerializer(data=data)
+			
+			if serializer.is_valid():
+				serializer.save()
+				return Response(serializer.data, status=status.HTTP_201_CREATED)
+			else:
+				return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 		
 '''		
 @csrf_exempt
