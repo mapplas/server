@@ -64,24 +64,42 @@ def app_pin_unpin(request):
 			'''	
 			Get user
 			'''
-			user = User.objects.get(id=data['uid'])
-			print('User exists')			
+			userId = data['uid']
+			user = User.objects.get(id=userId)
 			
 			try:
 				'''
 				Get application
 				'''
-				app = Application.objects.get(app_id=data['app'])
-				print('App exists')
+				appId = data['app']
+				app = Application.objects.get(app_id=appId)
+				
+				'''
+				Create object to be serialized
+				'''
+				dataToSerialize = {}
+				dataToSerialize['user'] = userId
+				dataToSerialize['app'] = appId
+				dataToSerialize['lon'] = data['lon']
+				dataToSerialize['lat'] = data['lat']
+				dataToSerialize['created'] = timezone.now()
+				
+				serializer = UserPinnedAppSerializer(data=dataToSerialize)
+				
+				if serializer.is_valid():
+					serializer.save()
+					return Response(serializer.data, status=status.HTTP_201_CREATED)
+				else:
+					return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 				
 			except Application.DoesNotExist:
-				error = {'appId' : 'Application does not exist'}
-				print('App NOT exists')
+				error = {}
+				error['error'] = 'Application does not exist for id %s' % appId
 				return Response(error, status=status.HTTP_400_BAD_REQUEST)
 			
 		except User.DoesNotExist:
-			error = {'userId' : 'User does not exist'}
-			print('User NOT exists')
-			return Reponse(error, status=status.HTTP_400_BAD_REQUEST)
+			error = {}
+			error['error'] = 'User does not exist for id %s' % userId
+			return Response(error, status=status.HTTP_400_BAD_REQUEST)
 	
 		
