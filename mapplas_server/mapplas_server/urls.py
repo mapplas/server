@@ -4,6 +4,7 @@ from django.conf.urls import patterns, include, url
 # from django.contrib import admin
 # admin.autodiscover()
 
+
 urlpatterns = patterns('',
     # Examples:
     # url(r'^$', 'mapplas_server.views.home', name='home'),
@@ -14,4 +15,6 @@ urlpatterns = patterns('',
 
     # Uncomment the next line to enable the admin:
     # url(r'^admin/', include(admin.site.urls)),
+    url(r'^api/user$', 'rest_api.views.user_register'),
+    #url(r'^users/(?P<pk>[0-9]+)/$', 'mapplas_server.views.user_detail'),
 )
