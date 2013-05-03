@@ -6,8 +6,8 @@ from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.decorators import api_view
 
-from rest_api.models import User
-from rest_api.serializers import UserSerializer
+from rest_api.models import User, Application, UserPinnedApps
+from rest_api.serializers import UserSerializer, ApplicationSerializer, UserPinnedAppSerializer
 	
 @csrf_exempt
 @api_view(['POST'])
@@ -50,47 +50,38 @@ def user_register(request):
 				return Response(serializer.data, status=status.HTTP_201_CREATED)
 			else:
 				return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-		
-'''		
+
 @csrf_exempt
-def user_list(request):
-	
-	if request.method == 'GET':
-		users = User.objects.all()
-		serializer = UserSerializer(users, many=True)
-		return JSONResponse(serializer.data)
-	elif request.method == 'POST':
-		data = JSONParser().parse(request)
-		serializer = UserSerializer(data=data)
-		if serializer.is_valid():
-			serializer.save()
-			return JSONResponse(serializer.data, status=201)
-		else:
-			return JSONResponse(serializer.errors, status=400)
-            
-            
-@csrf_exempt
-def user_detail(request, pk):
-	
-	try:
-		snippet = User.objects.get(pk=pk)
-	except User.DoesNotExist:
-		return HttpResponse(status=404)
+@api_view(['POST'])	
+def app_pin_unpin(request):
+	'''
+	Pins or unpins an app for a concrete user in a concrete location.
+	'''
+	if request.method == 'POST':
+		data = request.POST
 		
-	if request.method == 'GET':
-		serializer = UserSerializer(snippet)
-		return JSONResponse(serializer.data)
+		try:
+			'''	
+			Get user
+			'''
+			user = User.objects.get(id=data['uid'])
+			print('User exists')			
+			
+			try:
+				'''
+				Get application
+				'''
+				app = Application.objects.get(app_id=data['app'])
+				print('App exists')
+				
+			except Application.DoesNotExist:
+				error = {'appId' : 'Application does not exist'}
+				print('App NOT exists')
+				return Response(error, status=status.HTTP_400_BAD_REQUEST)
+			
+		except User.DoesNotExist:
+			error = {'userId' : 'User does not exist'}
+			print('User NOT exists')
+			return Reponse(error, status=status.HTTP_400_BAD_REQUEST)
 	
-	elif request.method == 'PUT':
-		data = JSONParser().parse(request)
-		serializer = UserSerializer(snippet, data=data)
-		if serializer.is_valid():
-			serializer.save()
-			return JSONResponse(serializer.data)
-		else:
-			return JSONResponse(serializer.errors, status=400)
 		
-	elif request.method == 'DELETE':
-		snippet.delete()
-		return HttpResponse(status=204)
-'''
