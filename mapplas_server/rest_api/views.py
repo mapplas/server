@@ -74,24 +74,65 @@ def app_pin_unpin(request):
 				appId = data['app']
 				app = Application.objects.get(app_id=appId)
 				
-				'''
-				Create object to be serialized
-				'''
-				dataToSerialize = {}
-				dataToSerialize['user'] = userId
-				dataToSerialize['app'] = appId
-				dataToSerialize['lon'] = data['lon']
-				dataToSerialize['lat'] = data['lat']
-				dataToSerialize['created'] = timezone.now()
 				
-				serializer = UserPinnedAppSerializer(data=dataToSerialize)
+				'''
+				Get request action
+				'''
+				action = data['s']
+				print(action)
 				
-				if serializer.is_valid():
-					serializer.save()
-					return Response(serializer.data, status=status.HTTP_201_CREATED)
+				if action=='pin':
+					'''
+					Check if app was pinned before
+					'''
+					try:
+						pinnedApp = UserPinnedApps.objects.get(app_id=appId, user_id=userId)
+						
+						error = {}
+						error['error'] = 'Application already pinned'
+						return Response(error, status=status.HTTP_400_BAD_REQUEST)
+						
+					except UserPinnedApps.DoesNotExist:
+						'''
+						Create object to be serialized
+						'''
+						dataToSerialize = {}
+						dataToSerialize['user'] = userId
+						dataToSerialize['app'] = appId
+						dataToSerialize['lon'] = data['lon']
+						dataToSerialize['lat'] = data['lat']
+						dataToSerialize['created'] = timezone.now()
+						
+						serializer = UserPinnedAppSerializer(data=dataToSerialize)
+						
+						if serializer.is_valid():
+							serializer.save()
+							return Response(serializer.data, status=status.HTTP_201_CREATED)
+						else:
+							return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+							
+				elif action=='unpin':
+					'''
+					Delete object from db
+					'''
+					try:
+						pinnedApp = UserPinnedApps.objects.get(app_id=appId, user_id=userId)
+						pinnedApp.delete()
+					
+						info = {}
+						info['info'] = 'OK'
+						return Response(info, status=status.HTTP_201_CREATED)
+						
+					except UserPinnedApps.DoesNotExist:
+						error = {}
+						error['error'] = 'Application was not pinned before'
+						return Response(error, status=status.HTTP_201_CREATED)
+					
 				else:
-					return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-				
+					error = {}
+					error['error'] = 'Unsupported action %s' % action
+					return Response(error, status=status.HTTP_400_BAD_REQUEST)
+					
 			except Application.DoesNotExist:
 				error = {}
 				error['error'] = 'Application does not exist for id %s' % appId
