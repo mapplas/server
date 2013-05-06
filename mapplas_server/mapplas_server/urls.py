@@ -12,6 +12,8 @@ urlpatterns = patterns('',
     # Uncomment the next line to enable the admin:
     # url(r'^admin/', include(admin.site.urls)),
     url(r'^api/user/add$', 'rest_api.views.user_register'),
+    
     url(r'^api/user/pin$', 'rest_api.views.app_pin_unpin'),
     url(r'^api/user/block$', 'rest_api.views.app_block_unblock'),
+    url(r'^api/user/share$', 'rest_api.views.app_share'),
 )

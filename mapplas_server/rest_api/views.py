@@ -6,8 +6,8 @@ from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.decorators import api_view
 
-from rest_api.models import User, Application, UserPinnedApps, UserBlockedApps
-from rest_api.serializers import UserSerializer, ApplicationSerializer, UserPinnedAppSerializer, UserBlockedAppSerializer
+from rest_api.models import User, Application, UserPinnedApps, UserBlockedApps, UserSharedApps
+from rest_api.serializers import UserSerializer, ApplicationSerializer, UserPinnedAppSerializer, UserBlockedAppSerializer, UserSharedAppSerializer
 	
 @csrf_exempt
 @api_view(['POST'])
@@ -218,6 +218,58 @@ def app_block_unblock(request):
 					error['error'] = 'Unsupported action %s' % action
 					return Response(error, status=status.HTTP_400_BAD_REQUEST)
 				
+			except Application.DoesNotExist:
+				error = {}
+				error['error'] = 'Application does not exist for id %s' % appId
+				return Response(error, status=status.HTTP_400_BAD_REQUEST)
+			
+		except User.DoesNotExist:
+			error = {}
+			error['error'] = 'User does not exist for id %s' % userId
+			return Response(error, status=status.HTTP_400_BAD_REQUEST)
+			
+
+@csrf_exempt
+@api_view(['POST'])	
+def app_share(request):
+	'''
+	Shares of an application of a concrete user in a concrete location.
+	'''
+	if request.method == 'POST':
+		data = request.POST
+		
+		try:
+			'''	
+			Get user
+			'''
+			userId = data['uid']
+			user = User.objects.get(id=userId)
+			
+			try:
+				'''
+				Get application
+				'''
+				appId = data['app']
+				app = Application.objects.get(app_id=appId)
+				
+				'''
+				Create object to be serialized
+				'''
+				dataToSerialize = {}
+				dataToSerialize['user'] = userId
+				dataToSerialize['app'] = appId
+				dataToSerialize['lon'] = data['lon']
+				dataToSerialize['lat'] = data['lat']
+				dataToSerialize['created'] = timezone.now()
+						
+				serializer = UserSharedAppSerializer(data=dataToSerialize)
+						
+				if serializer.is_valid():
+					serializer.save()
+					return Response(serializer.data, status=status.HTTP_201_CREATED)
+				else:
+					return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+							
 			except Application.DoesNotExist:
 				error = {}
 				error['error'] = 'Application does not exist for id %s' % appId
