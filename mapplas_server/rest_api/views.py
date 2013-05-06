@@ -141,6 +141,4 @@ def app_pin_unpin(request):
 		except User.DoesNotExist:
 			error = {}
 			error['error'] = 'User does not exist for id %s' % userId
-			return Response(error, status=status.HTTP_400_BAD_REQUEST)
-	
-		
+			return Response(error, status=status.HTTP_400_BAD_REQUEST)	
