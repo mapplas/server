@@ -18,7 +18,7 @@ DATABASES = {
 
         'USER': 'postgres',
         'PASSWORD': 'admin',
-        'HOST': 'ec2-46-137-150-55.eu-west-1.compute.amazonaws.com',   # Empty for localhost through domain sockets or '127.0.0.1' for localhost through TCP.
+        'HOST': 'ec2-54-246-68-220.eu-west-1.compute.amazonaws.com',   # Empty for localhost through domain sockets or '127.0.0.1' for localhost through TCP.
         'PORT': '',                                                     # Set to empty string for default.
     }
 }
