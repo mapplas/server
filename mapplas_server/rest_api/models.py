@@ -81,8 +81,6 @@ class UserBlockedApps(models.Model):
     #block_id = models.AutoField(primary_key=True)
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     app = models.ForeignKey(Application, on_delete=models.CASCADE)
-    lon = models.FloatField()
-    lat = models.FloatField()
     created = models.DateTimeField('Creation date')
 
     objects = models.GeoManager()

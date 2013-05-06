@@ -1,5 +1,5 @@
 from django.forms import widgets
-from django.utils import timezone
+
 from rest_framework import serializers
 from rest_api.models import User, Application, UserPinnedApps, UserBlockedApps, UserSharedApps
 
@@ -21,4 +21,18 @@ class UserPinnedAppSerializer(serializers.ModelSerializer):
 
 	class Meta:
 		model = UserPinnedApps
+		fields = ('id', 'user', 'app', 'lon', 'lat', 'created')
+
+
+class UserBlockedAppSerializer(serializers.ModelSerializer):
+
+	class Meta:
+		model = UserBlockedApps
+		fields = ('id', 'user', 'app', 'created')
+		
+
+class UserSharedAppSerializer(serializers.ModelSerializer):
+
+	class Meta:
+		model = UserSharedApps
 		fields = ('id', 'user', 'app', 'lon', 'lat', 'created')
