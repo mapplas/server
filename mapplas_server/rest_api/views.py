@@ -333,3 +333,45 @@ def app_detail(request, app_id):
 			error = {}
 			error['error'] = 'Application does not exist for id %s' % app_id
 			return Response(error, status=status.HTTP_400_BAD_REQUEST)
+			
+
+@csrf_exempt
+@api_view(['POST'])
+def user_apps(request, user_id):
+	'''
+	Returns user blocked and pinned apps
+	'''
+	if request.method == 'POST':
+		data = request.POST
+		
+		'''
+		Get user
+		'''
+		try:
+			user = User.objects.get(pk=user_id)
+			
+			'''
+			Get pinned apps for user
+			'''
+			pinnedApps = UserPinnedApps.objects.all().filter(user_id=user_id)
+			pinnedAppsSerializer = UserPinnedAppSerializer(pinnedApps, many=True)
+
+			'''
+			Get blocked apps for user
+			'''
+			blockedApps = UserBlockedApps.objects.all().filter(user_id=user_id)
+			blockedAppsSerializer = UserBlockedAppSerializer(blockedApps, many=True)
+			
+			'''
+			Add blocked and pinned apps
+			'''
+			response = {}
+			response['pinned'] = pinnedAppsSerializer.data
+			response['blocked'] = blockedAppsSerializer.data
+			
+			return Response(response, status=status.HTTP_200_OK)
+			
+		except User.DoesNotExist:
+			error = {}
+			error['error'] = 'User does not exist for id %s' % user_id
+			return Response(error, status=status.HTTP_400_BAD_REQUEST)
