@@ -1,7 +1,7 @@
 from django.forms import widgets
 
 from rest_framework import serializers
-from rest_api.models import User, Application, UserPinnedApps, UserBlockedApps, UserSharedApps
+from rest_api.models import User, Application, UserPinnedApps, UserBlockedApps, UserSharedApps, AppDetails
 
 class UserSerializer(serializers.ModelSerializer):
 
@@ -36,3 +36,10 @@ class UserSharedAppSerializer(serializers.ModelSerializer):
 	class Meta:
 		model = UserSharedApps
 		fields = ('id', 'user', 'app', 'lon', 'lat', 'created')
+		
+
+class AppDetailsSerializer(serializers.ModelSerializer):
+
+	class Meta:
+		model = AppDetails
+		fields = ('id', 'app', 'language_code', 'title', 'description', 'screenshots', 'video', 'company_url', 'support_url', 'release_notes', 'created', 'updated')

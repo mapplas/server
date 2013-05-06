@@ -5,9 +5,10 @@ from django.views.decorators.csrf import csrf_exempt
 from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.decorators import api_view
+from rest_framework.renderers import JSONRenderer
 
-from rest_api.models import User, Application, UserPinnedApps, UserBlockedApps, UserSharedApps
-from rest_api.serializers import UserSerializer, ApplicationSerializer, UserPinnedAppSerializer, UserBlockedAppSerializer, UserSharedAppSerializer
+from rest_api.models import User, Application, UserPinnedApps, UserBlockedApps, UserSharedApps, AppDetails
+from rest_api.serializers import UserSerializer, ApplicationSerializer, UserPinnedAppSerializer, UserBlockedAppSerializer, UserSharedAppSerializer, AppDetailsSerializer
 	
 @csrf_exempt
 @api_view(['POST'])
@@ -32,7 +33,7 @@ def user_register(request):
 			
 			if serializer.is_valid():
 				serializer.save()
-				return Response(serializer.data)
+				return Response(serializer.data, status=status.HTTP_200_OK)
 			else:
 				return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
@@ -211,7 +212,7 @@ def app_block_unblock(request):
 					except UserBlockedApps.DoesNotExist:
 						error = {}
 						error['error'] = 'Application was not blocked before'
-						return Response(error, status=status.HTTP_201_CREATED)
+						return Response(error, status=status.HTTP_400_BAD_REQUEST)
 				
 				else:
 					error = {}
@@ -279,5 +280,56 @@ def app_share(request):
 			error = {}
 			error['error'] = 'User does not exist for id %s' % userId
 			return Response(error, status=status.HTTP_400_BAD_REQUEST)
-					
+
+
+@csrf_exempt
+@api_view(['POST'])
+def app_detail(request, app_id):
+	'''
+	Returns the detail of the requested app
+	'''
+	if request.method == 'POST':
+		data = request.POST
 		
+		'''
+		Get language
+		'''
+		lang = data['l']
+		
+		'''
+		Get application
+		'''
+		try:
+			app = Application.objects.get(pk=app_id)
+			
+			try:
+				'''
+				Get Application detail for given language
+				'''
+				appDetail = AppDetails.objects.get(app_id=app.app_id, language_code=lang)
+				serializer = AppDetailsSerializer(appDetail)
+				
+				return Response(serializer.data, status=status.HTTP_200_OK)
+				
+			except AppDetails.DoesNotExist:
+				'''
+				Application detail for given language does not exist
+				'''
+				try:
+					'''
+					Return any other app detail
+					'''
+					appDetail = AppDetails.objects.all().filter(app_id=app.app_id)
+					serializer = AppDetailsSerializer(appDetail[0])
+										
+					return Response(serializer.data, status=status.HTTP_200_OK)
+					
+				except AppDetails.DoesNotExist:
+					error = {}
+					error['error'] = 'ApplicationDetail does not exist for id %s' % app_id
+					return Response(error, status=status.HTTP_400_BAD_REQUEST)
+			
+		except Application.DoesNotExist:
+			error = {}
+			error['error'] = 'Application does not exist for id %s' % app_id
+			return Response(error, status=status.HTTP_400_BAD_REQUEST)

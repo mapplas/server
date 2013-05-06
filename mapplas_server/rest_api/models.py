@@ -122,7 +122,7 @@ class AppDetails(models.Model):
     objects = models.GeoManager()
 
     def __str__(self):
-        return self.app.app_name + " - " + self.title
+        return self.app.app_name + " - (" + self.language_code + ") " + self.title 
 
 
 class Storefront(models.Model):
