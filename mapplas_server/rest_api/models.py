@@ -47,7 +47,7 @@ class Application(models.Model):
     app_id = models.CharField(primary_key=True, max_length=128)
     # app_id_appstore is AppStore Apple ID (ex. 624548749)
     app_id_appstore = models.IntegerField()
-    url_schema = models.CharFiels(max_length=64, null=True)
+    url_schema = models.CharField(max_length=64, null=True)
     app_name = models.CharField(max_length=64)
     icon_url = models.CharField(max_length=128)
     app_title = models.CharField(max_length=128)
