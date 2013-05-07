@@ -27,7 +27,7 @@ class UserInstalledApps(models.Model):
     def __str__(self):
         return self.user.imei + ': ' + self.installed_apps + ' at lat: ' + self.lat + ' and long: ' + self.lon
 
-
+'''
 class UserLastUsedApps(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     last_used_apps = models.CharField(max_length=256)
@@ -40,10 +40,14 @@ class UserLastUsedApps(models.Model):
 
     def __str__(self):
         return self.user.imei + ': ' + self.last_used_apps + ' at lat: ' + self.lat + ' and long: ' + self.lon
-
+'''
 
 class Application(models.Model):
+	# app_id is AppStore Bundle ID (ex. com.digitalCalc)
     app_id = models.CharField(primary_key=True, max_length=128)
+    # app_id_appstore is AppStore Apple ID (ex. 624548749)
+    app_id_appstore = models.IntegerField()
+    url_schema = models.CharField(max_length=64, null=True)
     app_name = models.CharField(max_length=64)
     icon_url = models.CharField(max_length=128)
     app_title = models.CharField(max_length=128)
@@ -112,9 +116,9 @@ class AppDetails(models.Model):
     title = models.CharField(max_length=128)
     description = models.CharField(max_length=1024)
     screenshots = models.CharField(max_length=1024)
-    video = models.CharField(max_length=128)
+    video = models.CharField(max_length=128, null=True)
     company_url = models.CharField(max_length=128)
-    support_url = models.CharField(max_length=128)
+    support_url = models.CharField(max_length=128, null=True)
     release_notes = models.CharField(max_length=256)
     created = models.DateTimeField('Creation date')
     updated = models.DateTimeField('Update date')
