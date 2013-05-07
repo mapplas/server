@@ -18,4 +18,6 @@ urlpatterns = patterns('',
     url(r'^api/user/share$', 'rest_api.views.app_share'),
     
     url(r'^api/app-detail/(?P<app_id>[a-zA-Z0-9_.]+)$', 'rest_api.views.app_detail'),
+    
+    url(r'^api/user-apps-info/(?P<user_id>\d+)$', 'rest_api.views.user_apps'),
 )

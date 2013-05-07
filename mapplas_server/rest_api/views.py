@@ -333,3 +333,59 @@ def app_detail(request, app_id):
 			error = {}
 			error['error'] = 'Application does not exist for id %s' % app_id
 			return Response(error, status=status.HTTP_400_BAD_REQUEST)
+			
+
+@csrf_exempt
+@api_view(['POST'])
+def user_apps(request, user_id):
+	'''
+	Returns user blocked and pinned apps
+	'''
+	if request.method == 'POST':
+		data = request.POST
+		
+		'''
+		Get user
+		'''
+		try:
+			user = User.objects.get(pk=user_id)
+			
+			'''
+			Get pinned apps for user (id, name, logo, lat, lon)
+			'''
+			pinnedApps = UserPinnedApps.objects.all().filter(user_id=user_id)
+
+			response = {}
+			pinnedArray = []
+			pinnedAppsResponse = {}
+			
+			for pinnedApp in pinnedApps:
+				pinnedAppsResponse['id'] = pinnedApp.app.app_id
+				pinnedAppsResponse['name'] = pinnedApp.app.app_name
+				pinnedAppsResponse['icon'] = pinnedApp.app.icon_url
+				pinnedArray.append(pinnedAppsResponse.copy())
+				
+			response['pinned'] = pinnedArray
+
+			'''
+			Get blocked apps for user (id, name, logo)
+			'''
+			blockedApps = UserBlockedApps.objects.all().filter(user_id=user_id)
+			
+			blockedArray = []
+			blockedAppsResponse = {}
+			
+			for blockedApp in blockedAppsResponse:
+				blockedAppsResponse['id'] = blocked.app.app_id
+				blockedAppsResponse['name'] = blocked.app.app_name
+				blockedAppsResponse['icon'] = blocked.app.icon_url
+				blockedArray.append(blockedAppsResponse.copy())
+			
+			response['blocked'] = blockedArray
+			
+			return Response(response, status=status.HTTP_200_OK)
+			
+		except User.DoesNotExist:
+			error = {}
+			error['error'] = 'User does not exist for id %s' % user_id
+			return Response(error, status=status.HTTP_400_BAD_REQUEST)
