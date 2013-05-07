@@ -34,9 +34,18 @@ def user_register(request):
 			
 			if serializer.is_valid():
 				serializer.save()
-				return Response(serializer.data, status=status.HTTP_200_OK)
+				
+				'''
+				Return only useful values
+				'''
+				returnJson = {}
+				returnJson['user'] = user.id
+				returnJson['imei'] = user.imei
+				returnJson['tel'] = user.tel
+				
+				return ResponseGenerator.ok_with_message(returnJson)
 			else:
-				return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+				return ResponseGenerator.serializer_error(serializer.errors)
 
 		except User.DoesNotExist:
 			'''
@@ -49,9 +58,21 @@ def user_register(request):
 			
 			if serializer.is_valid():
 				serializer.save()
-				return Response(serializer.data, status=status.HTTP_201_CREATED)
+				
+				'''
+				Return only useful values
+				'''
+				userImei = data['imei']
+				user = User.objects.get(imei=data['imei'])
+				
+				returnJson = {}
+				returnJson['user'] = user.id
+				returnJson['imei'] = user.imei
+				returnJson['tel'] = user.tel
+				
+				return ResponseGenerator.ok_with_message(returnJson)
 			else:
-				return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+				return ResponseGenerator.serializer_error(serializer.errors)
 
 @csrf_exempt
 @api_view(['POST'])	
@@ -106,7 +127,7 @@ def app_pin_unpin(request):
 						
 						if serializer.is_valid():
 							serializer.save()
-							return ResponseGenerator.serializer_ok(serializer.data)
+							return ResponseGenerator.ok_with_message(serializer.data)
 						else:
 							return ResponseGenerator.serializer_error(serializer.errors)
 							
@@ -181,7 +202,7 @@ def app_block_unblock(request):
 						
 						if serializer.is_valid():
 							serializer.save()
-							return ResponseGenerator.serializer_ok(serializer.data)
+							return ResponseGenerator.ok_with_message(serializer.data)
 						else:
 							return ResponseGenerator.serializer_error(serializer.errors)
 				
@@ -245,7 +266,7 @@ def app_share(request):
 						
 				if serializer.is_valid():
 					serializer.save()
-					return ResponseGenerator.serializer_ok(serializer.data)
+					return ResponseGenerator.ok_with_message(serializer.data)
 				else:
 					return ResponseGenerator.serializer_error(serializer.errors)
 							
@@ -283,7 +304,7 @@ def app_detail(request, app_id):
 				appDetail = AppDetails.objects.get(app_id=app.app_id, language_code=lang)
 				serializer = AppDetailsSerializer(appDetail)
 				
-				return ResponseGenerator.serializer_ok(serializer.data)
+				return ResponseGenerator.ok_with_message(serializer.data)
 				
 			except AppDetails.DoesNotExist:
 				'''
@@ -296,7 +317,7 @@ def app_detail(request, app_id):
 					appDetail = AppDetails.objects.all().filter(app_id=app.app_id)
 					serializer = AppDetailsSerializer(appDetail[0])
 										
-					return ResponseGenerator.serializer_ok(serializer.data)
+					return ResponseGenerator.ok_with_message(serializer.data)
 					
 				except AppDetails.DoesNotExist:
 					return ResponseGenerator.generic_error_param('ApplicationDetail does not exist for id', app_id)
@@ -354,7 +375,7 @@ def user_apps(request, user_id):
 			
 			response['blocked'] = blockedArray
 			
-			return ResponseGenerator.serializer_ok(response)
+			return ResponseGenerator.ok_with_message(response)
 			
 		except User.DoesNotExist:
 			return ResponseGenerator.user_not_exist_error(userId)

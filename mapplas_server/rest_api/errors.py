@@ -39,8 +39,8 @@ class ResponseGenerator:
 		return Response(serializer_error, status=status.HTTP_400_BAD_REQUEST)
 		
 		
-	def serializer_ok(serializer_msg):
-		return Response(serializer_msg, status=status.HTTP_201_CREATED)
+	def ok_with_message(ok_msg):
+		return Response(ok_msg, status=status.HTTP_201_CREATED)
 		
 	
 	def ok_response():
