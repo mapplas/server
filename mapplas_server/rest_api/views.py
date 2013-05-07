@@ -351,23 +351,37 @@ def user_apps(request, user_id):
 			user = User.objects.get(pk=user_id)
 			
 			'''
-			Get pinned apps for user
+			Get pinned apps for user (id, name, logo, lat, lon)
 			'''
 			pinnedApps = UserPinnedApps.objects.all().filter(user_id=user_id)
-			pinnedAppsSerializer = UserPinnedAppSerializer(pinnedApps, many=True)
+
+			response = {}
+			pinnedArray = []
+			pinnedAppsResponse = {}
+			
+			for pinnedApp in pinnedApps:
+				pinnedAppsResponse['id'] = pinnedApp.app.app_id
+				pinnedAppsResponse['name'] = pinnedApp.app.app_name
+				pinnedAppsResponse['icon'] = pinnedApp.app.icon_url
+				pinnedArray.append(pinnedAppsResponse.copy())
+				
+			response['pinned'] = pinnedArray
 
 			'''
-			Get blocked apps for user
+			Get blocked apps for user (id, name, logo)
 			'''
 			blockedApps = UserBlockedApps.objects.all().filter(user_id=user_id)
-			blockedAppsSerializer = UserBlockedAppSerializer(blockedApps, many=True)
 			
-			'''
-			Add blocked and pinned apps
-			'''
-			response = {}
-			response['pinned'] = pinnedAppsSerializer.data
-			response['blocked'] = blockedAppsSerializer.data
+			blockedArray = []
+			blockedAppsResponse = {}
+			
+			for blockedApp in blockedAppsResponse:
+				blockedAppsResponse['id'] = blocked.app.app_id
+				blockedAppsResponse['name'] = blocked.app.app_name
+				blockedAppsResponse['icon'] = blocked.app.icon_url
+				blockedArray.append(blockedAppsResponse.copy())
+			
+			response['blocked'] = blockedArray
 			
 			return Response(response, status=status.HTTP_200_OK)
 			
