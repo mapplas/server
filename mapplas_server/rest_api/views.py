@@ -9,6 +9,7 @@ from rest_framework.renderers import JSONRenderer
 
 from rest_api.models import User, Application, UserPinnedApps, UserBlockedApps, UserSharedApps, AppDetails
 from rest_api.serializers import UserSerializer, ApplicationSerializer, UserPinnedAppSerializer, UserBlockedAppSerializer, UserSharedAppSerializer, AppDetailsSerializer
+from rest_api.errors import ResponseGenerator
 	
 @csrf_exempt
 @api_view(['POST'])
@@ -88,9 +89,7 @@ def app_pin_unpin(request):
 					try:
 						pinnedApp = UserPinnedApps.objects.get(app_id=appId, user_id=userId)
 						
-						error = {}
-						error['error'] = 'Application already pinned'
-						return Response(error, status=status.HTTP_400_BAD_REQUEST)
+						return ResponseGenerator.generic_error('Application already pinned')
 						
 					except UserPinnedApps.DoesNotExist:
 						'''
@@ -107,9 +106,9 @@ def app_pin_unpin(request):
 						
 						if serializer.is_valid():
 							serializer.save()
-							return Response(serializer.data, status=status.HTTP_201_CREATED)
+							return ResponseGenerator.serializer_ok(serializer.data)
 						else:
-							return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+							return ResponseGenerator.serializer_error(serializer.errors)
 							
 				elif action=='unpin':
 					'''
@@ -118,30 +117,20 @@ def app_pin_unpin(request):
 					try:
 						pinnedApp = UserPinnedApps.objects.get(app_id=appId, user_id=userId)
 						pinnedApp.delete()
-					
-						info = {}
-						info['info'] = 'OK'
-						return Response(info, status=status.HTTP_201_CREATED)
+						
+						return ResponseGenerator.ok_response()
 						
 					except UserPinnedApps.DoesNotExist:
-						error = {}
-						error['error'] = 'Application was not pinned before'
-						return Response(error, status=status.HTTP_201_CREATED)
+						return ResponseGenerator.generic_error('Application was not pinned before')
 					
 				else:
-					error = {}
-					error['error'] = 'Unsupported action %s' % action
-					return Response(error, status=status.HTTP_400_BAD_REQUEST)
+					return ResponseGenerator.unsupported_action_error(action)
 					
 			except Application.DoesNotExist:
-				error = {}
-				error['error'] = 'Application does not exist for id %s' % appId
-				return Response(error, status=status.HTTP_400_BAD_REQUEST)
+				return ResponseGenerator.app_not_exist_error(appId)
 			
 		except User.DoesNotExist:
-			error = {}
-			error['error'] = 'User does not exist for id %s' % userId
-			return Response(error, status=status.HTTP_400_BAD_REQUEST)
+			return ResponseGenerator.user_not_exist_error(userId)
 
 
 @csrf_exempt
@@ -176,9 +165,8 @@ def app_block_unblock(request):
 				if action=='block':
 					try:
 						blockedApp = UserBlockedApps.objects.get(app_id=appId, user_id=userId)
-						error = {}
-						error['error'] = 'Application already blocked'
-						return Response(error, status=status.HTTP_400_BAD_REQUEST)
+						
+						return ResponseGenerator.generic_error('Application already blocked')
 						
 					except UserBlockedApps.DoesNotExist:
 						'''
@@ -193,9 +181,9 @@ def app_block_unblock(request):
 						
 						if serializer.is_valid():
 							serializer.save()
-							return Response(serializer.data, status=status.HTTP_201_CREATED)
+							return ResponseGenerator.serializer_ok(serializer.data)
 						else:
-							return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+							return ResponseGenerator.serializer_error(serializer.errors)
 				
 				elif action=='unblock':
 					'''
@@ -205,29 +193,19 @@ def app_block_unblock(request):
 						blockedApp = UserBlockedApps.objects.get(app_id=appId, user_id=userId)
 						blockedApp.delete()
 					
-						info = {}
-						info['info'] = 'OK'
-						return Response(info, status=status.HTTP_201_CREATED)
+						return ResponseGenerator.ok_response()
 						
 					except UserBlockedApps.DoesNotExist:
-						error = {}
-						error['error'] = 'Application was not blocked before'
-						return Response(error, status=status.HTTP_400_BAD_REQUEST)
+						return ResponseGenerator.generic_error('Application was not blocked before')
 				
 				else:
-					error = {}
-					error['error'] = 'Unsupported action %s' % action
-					return Response(error, status=status.HTTP_400_BAD_REQUEST)
+					return ResponseGenerator.unsupported_action_error(action)
 				
 			except Application.DoesNotExist:
-				error = {}
-				error['error'] = 'Application does not exist for id %s' % appId
-				return Response(error, status=status.HTTP_400_BAD_REQUEST)
+				return ResponseGenerator.app_not_exist_error(appId)
 			
 		except User.DoesNotExist:
-			error = {}
-			error['error'] = 'User does not exist for id %s' % userId
-			return Response(error, status=status.HTTP_400_BAD_REQUEST)
+			return ResponseGenerator.user_not_exist_error(userId)
 			
 
 @csrf_exempt
@@ -267,19 +245,15 @@ def app_share(request):
 						
 				if serializer.is_valid():
 					serializer.save()
-					return Response(serializer.data, status=status.HTTP_201_CREATED)
+					return ResponseGenerator.serializer_ok(serializer.data)
 				else:
-					return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+					return ResponseGenerator.serializer_error(serializer.errors)
 							
 			except Application.DoesNotExist:
-				error = {}
-				error['error'] = 'Application does not exist for id %s' % appId
-				return Response(error, status=status.HTTP_400_BAD_REQUEST)
+				return ResponseGenerator.app_not_exist_error(appId)
 			
 		except User.DoesNotExist:
-			error = {}
-			error['error'] = 'User does not exist for id %s' % userId
-			return Response(error, status=status.HTTP_400_BAD_REQUEST)
+			return ResponseGenerator.user_not_exist_error(userId)
 
 
 @csrf_exempt
@@ -309,7 +283,7 @@ def app_detail(request, app_id):
 				appDetail = AppDetails.objects.get(app_id=app.app_id, language_code=lang)
 				serializer = AppDetailsSerializer(appDetail)
 				
-				return Response(serializer.data, status=status.HTTP_200_OK)
+				return ResponseGenerator.serializer_ok(serializer.data)
 				
 			except AppDetails.DoesNotExist:
 				'''
@@ -322,17 +296,14 @@ def app_detail(request, app_id):
 					appDetail = AppDetails.objects.all().filter(app_id=app.app_id)
 					serializer = AppDetailsSerializer(appDetail[0])
 										
-					return Response(serializer.data, status=status.HTTP_200_OK)
+					return ResponseGenerator.serializer_ok(serializer.data)
 					
 				except AppDetails.DoesNotExist:
-					error = {}
-					error['error'] = 'ApplicationDetail does not exist for id %s' % app_id
-					return Response(error, status=status.HTTP_400_BAD_REQUEST)
+					return ResponseGenerator.generic_error_param('ApplicationDetail does not exist for id', app_id)
 			
 		except Application.DoesNotExist:
-			error = {}
-			error['error'] = 'Application does not exist for id %s' % app_id
-			return Response(error, status=status.HTTP_400_BAD_REQUEST)
+			return ResponseGenerator.app_not_exist_error(app_id)
+
 			
 
 @csrf_exempt
@@ -383,9 +354,7 @@ def user_apps(request, user_id):
 			
 			response['blocked'] = blockedArray
 			
-			return Response(response, status=status.HTTP_200_OK)
+			return ResponseGenerator.serializer_ok(response)
 			
 		except User.DoesNotExist:
-			error = {}
-			error['error'] = 'User does not exist for id %s' % user_id
-			return Response(error, status=status.HTTP_400_BAD_REQUEST)
+			return ResponseGenerator.user_not_exist_error(userId)
