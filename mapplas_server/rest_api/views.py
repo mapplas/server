@@ -127,7 +127,8 @@ def app_pin_unpin(request):
 						
 						if serializer.is_valid():
 							serializer.save()
-							return ResponseGenerator.ok_with_message(serializer.data)
+							
+							return ResponseGenerator.ok_response()
 						else:
 							return ResponseGenerator.serializer_error(serializer.errors)
 							
@@ -202,7 +203,8 @@ def app_block_unblock(request):
 						
 						if serializer.is_valid():
 							serializer.save()
-							return ResponseGenerator.ok_with_message(serializer.data)
+							
+							return ResponseGenerator.ok_response()
 						else:
 							return ResponseGenerator.serializer_error(serializer.errors)
 				
@@ -266,7 +268,9 @@ def app_share(request):
 						
 				if serializer.is_valid():
 					serializer.save()
-					return ResponseGenerator.ok_with_message(serializer.data)
+					
+					return ResponseGenerator.ok_response()
+					
 				else:
 					return ResponseGenerator.serializer_error(serializer.errors)
 							
