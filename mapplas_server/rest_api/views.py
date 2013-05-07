@@ -383,3 +383,29 @@ def user_apps(request, user_id):
 			
 		except User.DoesNotExist:
 			return ResponseGenerator.user_not_exist_error(userId)
+			
+
+@csrf_exempt
+@api_view(['POST'])
+def installed_apps(request):
+	'''
+	Returns all avaliable url scheme for given store
+	'''
+	if request.method == 'POST':
+		
+		'''
+		Get all applications with url scheme
+		'''
+		appQuery = Application.objects.all().filter().exclude(url_schema__isnull=True)
+		
+		appsWithScheme = {}
+		appsWithSchemeArray = []
+		
+		for app in appQuery:
+			appsWithScheme['i'] = app.app_id
+			appsWithScheme['s'] = app.url_schema
+			appsWithSchemeArray.append(appsWithScheme.copy())
+			
+		return ResponseGenerator.ok_with_message(appsWithSchemeArray)
+			
+			
