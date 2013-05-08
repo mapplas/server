@@ -19,7 +19,7 @@ def user_register(request):
 	Else, returns its data from db.
 	'''
 	if request.method == 'POST':
-		data = request.POST
+		data = request.DATA
 			
 		try:
 			'''
@@ -81,7 +81,7 @@ def app_pin_unpin(request):
 	Pins or unpins an app for a concrete user in a concrete location.
 	'''
 	if request.method == 'POST':
-		data = request.POST
+		data = request.DATA
 		
 		try:
 			'''	
@@ -162,7 +162,7 @@ def app_block_unblock(request):
 	Blocks or unblocks an app for a concrete user.
 	'''
 	if request.method == 'POST':
-		data = request.POST
+		data = request.DATA
 		
 		try:
 			'''	
@@ -238,7 +238,7 @@ def app_share(request):
 	Shares of an application of a concrete user in a concrete location.
 	'''
 	if request.method == 'POST':
-		data = request.POST
+		data = request.DATA
 		
 		try:
 			'''	
@@ -288,7 +288,7 @@ def app_detail(request, app_id):
 	Returns the detail of the requested app
 	'''
 	if request.method == 'POST':
-		data = request.POST
+		data = request.DATA
 		
 		'''
 		Get language
@@ -338,7 +338,7 @@ def user_apps(request, user_id):
 	Returns user blocked and pinned apps
 	'''
 	if request.method == 'POST':
-		data = request.POST
+		data = request.DATA
 		
 		'''
 		Get user

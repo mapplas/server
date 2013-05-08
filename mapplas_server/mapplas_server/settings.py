@@ -3,10 +3,10 @@ import os.path
 
 DEBUG = True
 TEMPLATE_DEBUG = DEBUG
-APPEND_SLASH=False
+#APPEND_SLASH=False
 
 ADMINS = (
-    # ('Your Name', 'your_email@example.com'),
+    # ('Belen Araña', 'belen@mapplas.com'),
 )
 
 MANAGERS = ADMINS
@@ -18,8 +18,8 @@ DATABASES = {
 
         'USER': 'postgres',
         'PASSWORD': 'admin',
-        'HOST': 'ec2-54-246-68-220.eu-west-1.compute.amazonaws.com',   # Empty for localhost through domain sockets or '127.0.0.1' for localhost through TCP.
-        'PORT': '',                                                     # Set to empty string for default.
+        'HOST': '54.217.249.103',   						# Empty for localhost through domain sockets or '127.0.0.1' for localhost through TCP.
+        'PORT': '',                                         # Set to empty string for default.
     }
 }
 
