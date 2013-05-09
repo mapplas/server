@@ -118,6 +118,18 @@ def applications(request):
 				appsDict['sc'] = app.url_schema
 				
 				'''
+				Check if app is blocked by user
+				'''
+				try:
+					appIsBlocked = UserBlockedApps.objects.get(user_id=user_id, app_id=app.app_id)
+					continue
+					
+				except UserBlockedApps.DoesNotExist:
+					'''
+					Do nothing
+					'''
+				
+				'''
 				Check if app is pinned by user
 				'''
 				try:
@@ -228,6 +240,7 @@ def app_pin_unpin(request):
 						if serializer.is_valid():
 							serializer.save()
 							
+							print(ResponseGenerator.ok_response() + 'pin')
 							return ResponseGenerator.ok_response()
 						else:
 							return ResponseGenerator.serializer_error(serializer.errors)
@@ -240,6 +253,7 @@ def app_pin_unpin(request):
 						pinnedApp = UserPinnedApps.objects.get(app_id=appId, user_id=userId)
 						pinnedApp.delete()
 						
+						print(ResponseGenerator.ok_response() + 'unpin')
 						return ResponseGenerator.ok_response()
 						
 					except UserPinnedApps.DoesNotExist:
