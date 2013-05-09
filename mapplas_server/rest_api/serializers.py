@@ -1,7 +1,7 @@
 from django.forms import widgets
 
 from rest_framework import serializers
-from rest_api.models import User, Application, UserPinnedApps, UserBlockedApps, UserSharedApps, AppDetails
+from rest_api.models import User, Application, UserPinnedApps, UserBlockedApps, UserSharedApps, AppDetails, AppDeviceType, DeviceType, AppPrice
 
 class UserSerializer(serializers.ModelSerializer):
 
@@ -43,3 +43,24 @@ class AppDetailsSerializer(serializers.ModelSerializer):
 	class Meta:
 		model = AppDetails
 		fields = ('id', 'app', 'language_code', 'title', 'description', 'screenshots', 'video', 'company_url', 'support_url', 'release_notes', 'created', 'updated')
+		
+		
+class AppDeviceTypeSerializer(serializers.ModelSerializer):
+
+	class Meta:
+		model = AppDeviceType
+		fields = ('id', 'app_id', 'device_type_id')
+		
+		
+class DeviceTypeSerializer(serializers.ModelSerializer):
+
+	class Meta:
+		model = DeviceType
+		fields = ('device_id', 'name')
+		
+		
+class AppPriceSerializer(serializers.ModelSerializer):
+
+	class Meta:
+		model = AppPrice
+		fields = ('app_id', 'storefront_id', 'retail_price', 'currency_code')

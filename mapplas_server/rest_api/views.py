@@ -7,8 +7,8 @@ from rest_framework.response import Response
 from rest_framework.decorators import api_view
 from rest_framework.renderers import JSONRenderer
 
-from rest_api.models import User, Application, UserPinnedApps, UserBlockedApps, UserSharedApps, AppDetails
-from rest_api.serializers import UserSerializer, ApplicationSerializer, UserPinnedAppSerializer, UserBlockedAppSerializer, UserSharedAppSerializer, AppDetailsSerializer
+from rest_api.models import User, Application, UserPinnedApps, UserBlockedApps, UserSharedApps, AppDetails, AppDeviceType, DeviceType, AppPrice
+from rest_api.serializers import UserSerializer, ApplicationSerializer, UserPinnedAppSerializer, UserBlockedAppSerializer, UserSharedAppSerializer, AppDetailsSerializer, AppDeviceTypeSerializer
 from rest_api.errors import ResponseGenerator
 	
 @csrf_exempt
@@ -73,6 +73,106 @@ def user_register(request):
 				return ResponseGenerator.ok_with_message(returnJson)
 			else:
 				return ResponseGenerator.serializer_error(serializer.errors)
+
+
+@csrf_exempt
+@api_view(['POST'])
+def applications(request):
+	'''
+	Gets application list
+	'''
+	if request.method == 'POST':
+		data = request.DATA
+		
+		lat = data['lat']
+		lon = data['lon']
+		accuracy = data['p']
+		
+		appsArray = []
+		appsDict = {}
+		
+		try:
+			'''
+			Get user
+			'''
+			user_id = data['uid']
+			user = User.objects.get(pk=user_id)
+			
+			'''
+			Get UserPinnedApps
+			'''
+			try:
+				userPinnedApps = UserPinnedApps.objects.all().filter(user_id=user_id)
+				
+			except UserPinnedApps.DoesNotExist:
+				'''
+				Do nothing
+				'''
+			
+			apps = Application.objects.all()
+			
+			for app in apps:
+				appsDict['id'] = app.app_id
+				appsDict['n'] = app.app_name
+				appsDict['i'] = app.icon_url
+				appsDict['sc'] = app.url_schema
+				
+				'''
+				Check if app is pinned by user
+				'''
+				try:
+					appIsPinned = userPinnedApps.get(app_id=app.app_id)
+					appsDict['pin'] = 1
+
+				except UserPinnedApps.DoesNotExist:
+					appsDict['pin'] = 0
+					
+				'''
+				Check number of pins for this app
+				'''
+				try:
+					appsDict['tpin'] = UserPinnedApps.objects.all().filter(app_id=app.app_id).count()
+					
+				except UserPinnedApps.DoesNotExist:
+					appsDict['tpin'] = 0
+					
+				'''
+				Check app type. MUST exist for all apps
+				'''
+				try:
+					appDeviceType = AppDeviceType.objects.get(app_id=app.app_id)
+					appsDict['type'] = appDeviceType.device_type.name
+				
+				except AppDeviceType.DoesNotExist:
+					return ResponseGenerator.generic_error_param('App device type does not exist for app', app.app_id)
+					
+				'''
+				Check app price, storefront and currency code
+				App price, 0 or float.
+				Storefront: 1 Spanish Appstore, 2 American Appstore
+				Currency Code, ISO codes: EUR for euro, USD for United States dollar
+				'''
+				storefront_id = 2
+				try:
+					appsDict['pr'] = AppPrice.objects.get(app_id=app.app_id, storefront_id=storefront_id).retail_price
+					appsDict['cu'] = AppPrice.objects.get(app_id=app.app_id, storefront_id=storefront_id).currency_code
+					appsDict['st'] = AppPrice.objects.get(app_id=app.app_id, storefront_id=storefront_id).storefront_id
+				
+				except AppPrice.DoesNotExist:
+					'''
+					HTML5 app
+					'''
+				
+				appsArray.append(appsDict.copy())		
+			
+			return ResponseGenerator.ok_with_message(appsArray)
+			
+		except User.DoesNotExist:
+			'''
+			Return error response
+			'''
+			return ResponseGenerator.user_not_exist_error(user_id)
+
 
 @csrf_exempt
 @api_view(['POST'])	
