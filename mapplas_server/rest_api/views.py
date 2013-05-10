@@ -240,7 +240,6 @@ def app_pin_unpin(request):
 						if serializer.is_valid():
 							serializer.save()
 							
-							print(ResponseGenerator.ok_response() + 'pin')
 							return ResponseGenerator.ok_response()
 						else:
 							return ResponseGenerator.serializer_error(serializer.errors)
@@ -253,7 +252,6 @@ def app_pin_unpin(request):
 						pinnedApp = UserPinnedApps.objects.get(app_id=appId, user_id=userId)
 						pinnedApp.delete()
 						
-						print(ResponseGenerator.ok_response() + 'unpin')
 						return ResponseGenerator.ok_response()
 						
 					except UserPinnedApps.DoesNotExist:
@@ -472,8 +470,8 @@ def user_apps(request, user_id):
 			
 			for pinnedApp in pinnedApps:
 				pinnedAppsResponse['id'] = pinnedApp.app.app_id
-				pinnedAppsResponse['name'] = pinnedApp.app.app_name
-				pinnedAppsResponse['icon'] = pinnedApp.app.icon_url
+				pinnedAppsResponse['n'] = pinnedApp.app.app_name
+				pinnedAppsResponse['i'] = pinnedApp.app.icon_url
 				pinnedArray.append(pinnedAppsResponse.copy())
 				
 			response['pinned'] = pinnedArray
@@ -486,14 +484,14 @@ def user_apps(request, user_id):
 			blockedArray = []
 			blockedAppsResponse = {}
 			
-			for blockedApp in blockedAppsResponse:
-				blockedAppsResponse['id'] = blocked.app.app_id
-				blockedAppsResponse['name'] = blocked.app.app_name
-				blockedAppsResponse['icon'] = blocked.app.icon_url
+			for blockedApp in blockedApps:
+				blockedAppsResponse['id'] = blockedApp.app.app_id
+				blockedAppsResponse['n'] = blockedApp.app.app_name
+				blockedAppsResponse['i'] = blockedApp.app.icon_url
 				blockedArray.append(blockedAppsResponse.copy())
 			
 			response['blocked'] = blockedArray
-			
+						
 			return ResponseGenerator.ok_with_message(response)
 			
 		except User.DoesNotExist:
