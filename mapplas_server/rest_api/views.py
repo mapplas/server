@@ -376,6 +376,7 @@ def app_share(request):
 				dataToSerialize['app'] = appId
 				dataToSerialize['lon'] = data['lon']
 				dataToSerialize['lat'] = data['lat']
+				dataToSerialize['via'] = data['via']
 				dataToSerialize['created'] = timezone.now()
 						
 				serializer = UserSharedAppSerializer(data=dataToSerialize)

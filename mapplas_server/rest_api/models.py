@@ -46,7 +46,7 @@ class Application(models.Model):
 	# app_id is AppStore Bundle ID (ex. com.digitalCalc)
     app_id = models.CharField(primary_key=True, max_length=128)
     # app_id_appstore is AppStore Apple ID (ex. 624548749)
-    app_id_appstore = models.IntegerField()
+    app_id_appstore = models.PositiveIntegerField()
     url_schema = models.CharField(max_length=64, null=True)
     app_name = models.CharField(max_length=64)
     icon_url = models.CharField(max_length=128)
@@ -100,6 +100,7 @@ class UserSharedApps(models.Model):
     app = models.ForeignKey(Application, on_delete=models.CASCADE)
     lon = models.FloatField()
     lat = models.FloatField()
+    via = models.CharField(max_length=32)
     created = models.DateTimeField('Creation date')
 
     objects = models.GeoManager()

@@ -35,7 +35,7 @@ class UserSharedAppSerializer(serializers.ModelSerializer):
 
 	class Meta:
 		model = UserSharedApps
-		fields = ('id', 'user', 'app', 'lon', 'lat', 'created')
+		fields = ('id', 'user', 'app', 'lon', 'lat', 'via', 'created')
 		
 
 class AppDetailsSerializer(serializers.ModelSerializer):
