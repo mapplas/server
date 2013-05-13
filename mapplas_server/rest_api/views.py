@@ -7,8 +7,8 @@ from rest_framework.response import Response
 from rest_framework.decorators import api_view
 from rest_framework.renderers import JSONRenderer
 
-from rest_api.models import User, Application, UserPinnedApps, UserBlockedApps, UserSharedApps, AppDetails
-from rest_api.serializers import UserSerializer, ApplicationSerializer, UserPinnedAppSerializer, UserBlockedAppSerializer, UserSharedAppSerializer, AppDetailsSerializer
+from rest_api.models import User, Application, UserPinnedApps, UserBlockedApps, UserSharedApps, AppDetails, AppDeviceType, DeviceType, AppPrice
+from rest_api.serializers import UserSerializer, ApplicationSerializer, UserPinnedAppSerializer, UserBlockedAppSerializer, UserSharedAppSerializer, AppDetailsSerializer, AppDeviceTypeSerializer
 from rest_api.errors import ResponseGenerator
 	
 @csrf_exempt
@@ -19,7 +19,7 @@ def user_register(request):
 	Else, returns its data from db.
 	'''
 	if request.method == 'POST':
-		data = request.POST
+		data = request.DATA
 			
 		try:
 			'''
@@ -74,6 +74,119 @@ def user_register(request):
 			else:
 				return ResponseGenerator.serializer_error(serializer.errors)
 
+
+@csrf_exempt
+@api_view(['POST'])
+def applications(request):
+	'''
+	Gets application list
+	'''
+	if request.method == 'POST':
+		data = request.DATA
+		
+		lat = data['lat']
+		lon = data['lon']
+		accuracy = data['p']
+		
+		appsArray = []
+		appsDict = {}
+		
+		try:
+			'''
+			Get user
+			'''
+			user_id = data['uid']
+			user = User.objects.get(pk=user_id)
+			
+			'''
+			Get UserPinnedApps
+			'''
+			try:
+				userPinnedApps = UserPinnedApps.objects.all().filter(user_id=user_id)
+				
+			except UserPinnedApps.DoesNotExist:
+				'''
+				Do nothing
+				'''
+			
+			apps = Application.objects.all()
+			i = 0;
+			for app in apps:
+				appsDict['id'] = app.app_id
+				appsDict['n'] = app.app_name
+				appsDict['i'] = app.icon_url
+				appsDict['sc'] = app.url_schema
+				appsDict['asid'] = app.app_id_appstore
+				
+				'''
+				Check if app is blocked by user
+				'''
+				try:
+					appIsBlocked = UserBlockedApps.objects.get(user_id=user_id, app_id=app.app_id)
+					continue
+					
+				except UserBlockedApps.DoesNotExist:
+					'''
+					Do nothing
+					'''
+				
+				'''
+				Check if app is pinned by user
+				'''
+				try:
+					appIsPinned = userPinnedApps.get(app_id=app.app_id)
+					appsDict['pin'] = 1
+
+				except UserPinnedApps.DoesNotExist:
+					appsDict['pin'] = 0
+					
+				'''
+				Check number of pins for this app
+				'''
+				try:
+					appsDict['tpin'] = UserPinnedApps.objects.all().filter(app_id=app.app_id).count()
+					
+				except UserPinnedApps.DoesNotExist:
+					appsDict['tpin'] = 0
+					
+				'''
+				Check app type. MUST exist for all apps
+				'''
+				try:
+					appDeviceType = AppDeviceType.objects.get(app_id=app.app_id)
+					appsDict['type'] = appDeviceType.device_type.name
+				
+				except AppDeviceType.DoesNotExist:
+					return ResponseGenerator.generic_error_param('App device type does not exist for app', app.app_id)
+					
+				'''
+				Check app price, storefront and currency code
+				App price, 0 or float.
+				Storefront: 1 Spanish Appstore, 2 American Appstore
+				Currency Code, ISO codes: EUR for euro, USD for United States dollar
+				'''
+				storefront_id = 2
+				try:
+					appsDict['pr'] = AppPrice.objects.get(app_id=app.app_id, storefront_id=storefront_id).retail_price
+					appsDict['cu'] = AppPrice.objects.get(app_id=app.app_id, storefront_id=storefront_id).currency_code
+					appsDict['st'] = AppPrice.objects.get(app_id=app.app_id, storefront_id=storefront_id).storefront_id
+				
+				except AppPrice.DoesNotExist:
+					'''
+					HTML5 app
+					'''
+				
+				appsArray.append(appsDict.copy())
+			
+			return ResponseGenerator.ok_with_message(appsArray)
+			
+		except User.DoesNotExist:
+			'''
+			Return error response
+			'''
+			return ResponseGenerator.user_not_exist_error(user_id)
+
+
 @csrf_exempt
 @api_view(['POST'])	
 def app_pin_unpin(request):
@@ -81,7 +194,7 @@ def app_pin_unpin(request):
 	Pins or unpins an app for a concrete user in a concrete location.
 	'''
 	if request.method == 'POST':
-		data = request.POST
+		data = request.DATA
 		
 		try:
 			'''	
@@ -162,7 +275,7 @@ def app_block_unblock(request):
 	Blocks or unblocks an app for a concrete user.
 	'''
 	if request.method == 'POST':
-		data = request.POST
+		data = request.DATA
 		
 		try:
 			'''	
@@ -238,7 +351,7 @@ def app_share(request):
 	Shares of an application of a concrete user in a concrete location.
 	'''
 	if request.method == 'POST':
-		data = request.POST
+		data = request.DATA
 		
 		try:
 			'''	
@@ -262,6 +375,7 @@ def app_share(request):
 				dataToSerialize['app'] = appId
 				dataToSerialize['lon'] = data['lon']
 				dataToSerialize['lat'] = data['lat']
+				dataToSerialize['via'] = data['via']
 				dataToSerialize['created'] = timezone.now()
 						
 				serializer = UserSharedAppSerializer(data=dataToSerialize)
@@ -288,7 +402,7 @@ def app_detail(request, app_id):
 	Returns the detail of the requested app
 	'''
 	if request.method == 'POST':
-		data = request.POST
+		data = request.DATA
 		
 		'''
 		Get language
@@ -306,9 +420,8 @@ def app_detail(request, app_id):
 				Get Application detail for given language
 				'''
 				appDetail = AppDetails.objects.get(app_id=app.app_id, language_code=lang)
-				serializer = AppDetailsSerializer(appDetail)
 				
-				return ResponseGenerator.ok_with_message(serializer.data)
+				return ResponseGenerator.ok_with_message(serializeAppDetail(appDetail))
 				
 			except AppDetails.DoesNotExist:
 				'''
@@ -319,9 +432,8 @@ def app_detail(request, app_id):
 					Return any other app detail
 					'''
 					appDetail = AppDetails.objects.all().filter(app_id=app.app_id)
-					serializer = AppDetailsSerializer(appDetail[0])
-										
-					return ResponseGenerator.ok_with_message(serializer.data)
+					
+					return ResponseGenerator.ok_with_message(serializeAppDetail(appDetail))
 					
 				except AppDetails.DoesNotExist:
 					return ResponseGenerator.generic_error_param('ApplicationDetail does not exist for id', app_id)
@@ -329,7 +441,18 @@ def app_detail(request, app_id):
 		except Application.DoesNotExist:
 			return ResponseGenerator.app_not_exist_error(app_id)
 
-			
+
+def serializeAppDetail(app_detail):
+	appDetailToReturn = {}
+	
+	appDetailToReturn ['d'] = app_detail.description
+	appDetailToReturn ['scr'] = app_detail.screenshots
+	#appDetailToReturn ['v'] = app_detail.video
+	appDetailToReturn ['curl'] = app_detail.company_url
+	appDetailToReturn ['surl'] = app_detail.support_url
+	
+	return appDetailToReturn
+	
 
 @csrf_exempt
 @api_view(['POST'])
@@ -338,7 +461,7 @@ def user_apps(request, user_id):
 	Returns user blocked and pinned apps
 	'''
 	if request.method == 'POST':
-		data = request.POST
+		data = request.DATA
 		
 		'''
 		Get user
@@ -357,8 +480,8 @@ def user_apps(request, user_id):
 			
 			for pinnedApp in pinnedApps:
 				pinnedAppsResponse['id'] = pinnedApp.app.app_id
-				pinnedAppsResponse['name'] = pinnedApp.app.app_name
-				pinnedAppsResponse['icon'] = pinnedApp.app.icon_url
+				pinnedAppsResponse['n'] = pinnedApp.app.app_name
+				pinnedAppsResponse['i'] = pinnedApp.app.icon_url
 				pinnedArray.append(pinnedAppsResponse.copy())
 				
 			response['pinned'] = pinnedArray
@@ -371,14 +494,14 @@ def user_apps(request, user_id):
 			blockedArray = []
 			blockedAppsResponse = {}
 			
-			for blockedApp in blockedAppsResponse:
-				blockedAppsResponse['id'] = blocked.app.app_id
-				blockedAppsResponse['name'] = blocked.app.app_name
-				blockedAppsResponse['icon'] = blocked.app.icon_url
+			for blockedApp in blockedApps:
+				blockedAppsResponse['id'] = blockedApp.app.app_id
+				blockedAppsResponse['n'] = blockedApp.app.app_name
+				blockedAppsResponse['i'] = blockedApp.app.icon_url
 				blockedArray.append(blockedAppsResponse.copy())
 			
 			response['blocked'] = blockedArray
-			
+						
 			return ResponseGenerator.ok_with_message(response)
 			
 		except User.DoesNotExist:

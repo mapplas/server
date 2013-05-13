@@ -40,7 +40,7 @@ class ResponseGenerator:
 		
 		
 	def ok_with_message(ok_msg):
-		return Response(ok_msg, status=status.HTTP_201_CREATED)
+		return Response(ok_msg, status=status.HTTP_200_OK)
 		
 	
 	def ok_response():
