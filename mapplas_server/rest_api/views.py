@@ -110,12 +110,13 @@ def applications(request):
 				'''
 			
 			apps = Application.objects.all()
-			
+			i = 0;
 			for app in apps:
 				appsDict['id'] = app.app_id
 				appsDict['n'] = app.app_name
 				appsDict['i'] = app.icon_url
 				appsDict['sc'] = app.url_schema
+				appsDict['asid'] = app.app_id_appstore
 				
 				'''
 				Check if app is blocked by user
@@ -175,7 +176,7 @@ def applications(request):
 					HTML5 app
 					'''
 				
-				appsArray.append(appsDict.copy())		
+				appsArray.append(appsDict.copy())
 			
 			return ResponseGenerator.ok_with_message(appsArray)
 			
@@ -419,9 +420,8 @@ def app_detail(request, app_id):
 				Get Application detail for given language
 				'''
 				appDetail = AppDetails.objects.get(app_id=app.app_id, language_code=lang)
-				serializer = AppDetailsSerializer(appDetail)
 				
-				return ResponseGenerator.ok_with_message(serializer.data)
+				return ResponseGenerator.ok_with_message(serializeAppDetail(appDetail))
 				
 			except AppDetails.DoesNotExist:
 				'''
@@ -432,9 +432,8 @@ def app_detail(request, app_id):
 					Return any other app detail
 					'''
 					appDetail = AppDetails.objects.all().filter(app_id=app.app_id)
-					serializer = AppDetailsSerializer(appDetail[0])
-										
-					return ResponseGenerator.ok_with_message(serializer.data)
+					
+					return ResponseGenerator.ok_with_message(serializeAppDetail(appDetail))
 					
 				except AppDetails.DoesNotExist:
 					return ResponseGenerator.generic_error_param('ApplicationDetail does not exist for id', app_id)
@@ -442,7 +441,18 @@ def app_detail(request, app_id):
 		except Application.DoesNotExist:
 			return ResponseGenerator.app_not_exist_error(app_id)
 
-			
+
+def serializeAppDetail(app_detail):
+	appDetailToReturn = {}
+	
+	appDetailToReturn ['d'] = app_detail.description
+	appDetailToReturn ['scr'] = app_detail.screenshots
+	#appDetailToReturn ['v'] = app_detail.video
+	appDetailToReturn ['curl'] = app_detail.company_url
+	appDetailToReturn ['surl'] = app_detail.support_url
+	
+	return appDetailToReturn
+	
 
 @csrf_exempt
 @api_view(['POST'])
