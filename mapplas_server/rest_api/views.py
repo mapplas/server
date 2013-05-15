@@ -77,7 +77,7 @@ def user_register(request):
 
 @csrf_exempt
 @api_view(['POST'])
-def applications(request):
+def applications(request, multiple):
 	'''
 	Gets application list
 	'''
@@ -87,7 +87,8 @@ def applications(request):
 		lat = data['lat']
 		lon = data['lon']
 		accuracy = data['p']
-		
+
+		response = {}
 		appsArray = []
 		appsDict = {}
 		
@@ -97,7 +98,7 @@ def applications(request):
 			'''
 			user_id = data['uid']
 			user = User.objects.get(pk=user_id)
-			
+						
 			'''
 			Get UserPinnedApps
 			'''
@@ -110,7 +111,12 @@ def applications(request):
 				'''
 			
 			apps = Application.objects.all()
-			i = 0;
+			
+			'''
+			If multiple = 0, get first 25 (0*25=0 -> from 0 to 25) apps
+			If multiple = 1, get next 25 (1*25=25 -> from 25 to 50) apps
+			'''
+			
 			for app in apps:
 				appsDict['id'] = app.app_id
 				appsDict['n'] = app.app_name
@@ -177,8 +183,12 @@ def applications(request):
 					'''
 				
 				appsArray.append(appsDict.copy())
+				appsArray.append(appsDict.copy())
+				
+			response['apps'] = appsArray
+			response['last'] = 1
 			
-			return ResponseGenerator.ok_with_message(appsArray)
+			return ResponseGenerator.ok_with_message(response)
 			
 		except User.DoesNotExist:
 			'''
