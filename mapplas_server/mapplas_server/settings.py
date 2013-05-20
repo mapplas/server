@@ -18,7 +18,7 @@ DATABASES = {
 
         'USER': 'postgres',
         'PASSWORD': 'admin',
-        'HOST': '54.217.249.103',   						# Empty for localhost through domain sockets or '127.0.0.1' for localhost through TCP.
+        'HOST': '10.208.46.164',   						# Empty for localhost through domain sockets or '127.0.0.1' for localhost through TCP.
         'PORT': '',                                         # Set to empty string for default.
     }
 }
@@ -137,6 +137,7 @@ INSTALLED_APPS = (
     # REST framework
     'rest_framework',
     'rest_api',
+    'spain_multipolygons',
 )
 
 # A sample logging configuration. The only tangible logging
