@@ -18,7 +18,11 @@ DATABASES = {
 
         'USER': 'postgres',
         'PASSWORD': 'admin',
+<<<<<<< HEAD
         'HOST': '10.209.154.141',   						# Empty for localhost through domain sockets or '127.0.0.1' for localhost through TCP.
+=======
+        'HOST': '10.248.29.158',   						# Empty for localhost through domain sockets or '127.0.0.1' for localhost through TCP.
+>>>>>>> 367cdbf... Created new application for url-scheme scrapping.
         'PORT': '',                                     # Set to empty string for default.
     }
 }
@@ -138,6 +142,7 @@ INSTALLED_APPS = (
     'rest_framework',
     'rest_api',
     'spain_multipolygons',
+    'url_scheme_scrapper',
 )
 
 # A sample logging configuration. The only tangible logging
