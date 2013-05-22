@@ -28,7 +28,7 @@ def user_register(request):
 			user = User.objects.get(imei=data['imei'])
 			
 			dataToSave = {}
-			dataToSave['updated'] = timezone.now()
+			dataToSave['updated'] = epoch(timezone.now())
 			
 			serializer = UserSerializer(user, data=dataToSave, partial=True)
 			
@@ -51,8 +51,8 @@ def user_register(request):
 			'''
 			User does not exists into db. Insert.
 			'''
-			data['created'] = timezone.now()
-			data['updated'] = timezone.now()
+			data['created'] = epoch(timezone.now())
+			data['updated'] = epoch(timezone.now())
 					
 			serializer = UserSerializer(data=data)
 			
@@ -244,7 +244,7 @@ def app_pin_unpin(request):
 						dataToSerialize['app'] = appId
 						dataToSerialize['lon'] = data['lon']
 						dataToSerialize['lat'] = data['lat']
-						dataToSerialize['created'] = timezone.now()
+						dataToSerialize['created'] = epoch(timezone.now())
 						
 						serializer = UserPinnedAppSerializer(data=dataToSerialize)
 						
@@ -320,7 +320,7 @@ def app_block_unblock(request):
 						dataToSerialize = {}
 						dataToSerialize['user'] = userId
 						dataToSerialize['app'] = appId
-						dataToSerialize['created'] = timezone.now()
+						dataToSerialize['created'] = epoch(timezone.now())
 						
 						serializer = UserBlockedAppSerializer(data=dataToSerialize)
 						
@@ -386,7 +386,7 @@ def app_share(request):
 				dataToSerialize['lon'] = data['lon']
 				dataToSerialize['lat'] = data['lat']
 				dataToSerialize['via'] = data['via']
-				dataToSerialize['created'] = timezone.now()
+				dataToSerialize['created'] = epoch(timezone.now())
 						
 				serializer = UserSharedAppSerializer(data=dataToSerialize)
 						
@@ -540,5 +540,51 @@ def installed_apps(request):
 			appsWithSchemeArray.append(appsWithScheme.copy())
 			
 		return ResponseGenerator.ok_with_message(appsWithSchemeArray)
-			
-			
+'''
+PRIVATE METHODS
+'''
+import time
+
+def epoch(now_time):
+	return time.mktime(now_time.timetuple())
+
+'''
+URL SCHEMES SCRAPPING
+'''
+
+from urllib3 import PoolManager
+from bs4 import BeautifulSoup
+
+def scrape():
+
+	i = 1
+	manager = PoolManager()
+	
+	while i <= 1:
+		r = manager.request('GET', 'http://handleopenurl.com/api/v1.2/list.xml?apikey=e4f76a3591abb85f2369d91027f3e939&page=%d' % i)
+		soup = BeautifulSoup(r.data)
+		
+		handleopenurl = soup.handleopenurl
+		
+		for bundle in soup.findAll('cfbundle'):
+			scheme = unquote(bundle.urlscheme.text)
+			print(scheme)
+						
+			displayname = unquote(bundle.displayname.text)
+			print(displayname)
+
+			try:
+				app = Application.objects.get(app_name=displayname)
+				if app:
+					print(app)
+					#app.url_schema = scheme
+			except Application.DoesNotExist:
+				'''
+				App does not exist
+				'''
+		i=i+1	
+
+import re
+
+def unquote(url):
+  return re.compile('%([0-9a-fA-F]{2})',re.M).sub(lambda m: chr(int(m.group(1),16)), url)

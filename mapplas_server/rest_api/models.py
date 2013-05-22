@@ -18,8 +18,8 @@ class User(models.Model):
     #user_id = models.AutoField(primary_key=True)
     imei = models.CharField(max_length=32)
     tel = models.CharField(max_length=32)
-    created = models.DateTimeField('Creation date')
-    updated = models.DateTimeField('Update date')
+    created = BigIntegerField()
+    updated = BigIntegerField()
 
     objects = models.GeoManager()
 
@@ -32,8 +32,8 @@ class UserInstalledApps(models.Model):
     installed_apps = models.TextField()
     lon = models.FloatField()
     lat = models.FloatField()
-    created = models.DateTimeField('Creation date')
-    updated = models.DateTimeField('Update date')
+    created = BigIntegerField()
+    updated = BigIntegerField()
 
     objects = models.GeoManager()
 
@@ -62,16 +62,16 @@ class Application(models.Model):
 	# app_name is AppStore Bundle ID (ex. Genius Multiplication)
     app_name = models.CharField(max_length=1000)
     url_schema = models.CharField(max_length=200, null=True)
-    icon_url = models.CharField(max_length=1000)
+    icon_url = models.CharField(max_length=1000, null=True)
     app_description = models.TextField()
     version = models.CharField(max_length=100)
-    file_size = BigIntegerField()
+    file_size = BigIntegerField(null=True)
     rec_age = models.CharField(max_length=20, null=True)
     view_url = models.CharField(max_length=1000)
     company_url = models.CharField(max_length=1000, null=True)
     support_url = models.CharField(max_length=1000)
-    created = models.DateTimeField('Creation date')
-    updated = models.DateTimeField('Update date')
+    created = BigIntegerField()
+    updated = BigIntegerField()
 
     objects = models.GeoManager()
 
@@ -86,7 +86,7 @@ class UserPinnedApps(models.Model):
     app = models.ForeignKey(Application, on_delete=models.CASCADE)
     lon = models.FloatField()
     lat = models.FloatField()
-    created = models.DateTimeField('Creation date')
+    created = BigIntegerField()
 
     objects = models.GeoManager()
 
@@ -99,7 +99,7 @@ class UserBlockedApps(models.Model):
     #block_id = models.AutoField(primary_key=True)
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     app = models.ForeignKey(Application, on_delete=models.CASCADE)
-    created = models.DateTimeField('Creation date')
+    created =BigIntegerField()
 
     objects = models.GeoManager()
 
@@ -115,7 +115,7 @@ class UserSharedApps(models.Model):
     lon = models.FloatField()
     lat = models.FloatField()
     via = models.CharField(max_length=32)
-    created = models.DateTimeField('Creation date')
+    created = BigIntegerField()
 
     objects = models.GeoManager()
 
@@ -130,12 +130,15 @@ class AppDetails(models.Model):
     language_code = models.CharField('2 Digit ISO', max_length=20)
     title = models.CharField(max_length=1000)
     description = models.TextField()
-    screenshots = models.TextField()
+    screenshot1 = models.CharField(max_length=1000, null=True)
+    screenshot2 = models.CharField(max_length=1000, null=True)
+    screenshot3 = models.CharField(max_length=1000, null=True)
+    screenshot4 = models.CharField(max_length=1000, null=True)
     company_url = models.CharField(max_length=1000, null=True)
-    support_url = models.CharField(max_length=1000)
+    support_url = models.CharField(max_length=1000, null=True)
     release_notes = models.TextField(null=True)
-    created = models.DateTimeField('Creation date')
-    updated = models.DateTimeField('Update date')
+    created = BigIntegerField()
+    updated = BigIntegerField()
 
     objects = models.GeoManager()
 
@@ -200,7 +203,7 @@ class AppDeviceType(models.Model):
 
 class Developer(models.Model):
     developer_id = models.IntegerField(primary_key=True)
-    name = models.CharField(max_length=1000)
+    name = models.CharField(max_length=1000, null=True)
     url = models.CharField(max_length=1000)
 
     objects = models.GeoManager()
@@ -222,7 +225,7 @@ class DeveloperApp(models.Model):
 class Genre(models.Model):
     genre_id = models.IntegerField(primary_key=True)
     name = models.CharField(max_length=200)
-    parent_id = models.IntegerField()
+    parent_id = models.IntegerField(null=True)
 
     objects = models.GeoManager()
 
