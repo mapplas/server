@@ -10,6 +10,8 @@ from rest_framework.renderers import JSONRenderer
 from rest_api.models import User, Application, UserPinnedApps, UserBlockedApps, UserSharedApps, AppDetails, AppDeviceType, DeviceType, AppPrice
 from rest_api.serializers import UserSerializer, ApplicationSerializer, UserPinnedAppSerializer, UserBlockedAppSerializer, UserSharedAppSerializer, AppDetailsSerializer, AppDeviceTypeSerializer
 from rest_api.errors import ResponseGenerator
+
+from rest_api import helper
 	
 @csrf_exempt
 @api_view(['POST'])
@@ -28,7 +30,7 @@ def user_register(request):
 			user = User.objects.get(imei=data['imei'])
 			
 			dataToSave = {}
-			dataToSave['updated'] = epoch(timezone.now())
+			dataToSave['updated'] = helper.epoch(timezone.now())
 			
 			serializer = UserSerializer(user, data=dataToSave, partial=True)
 			
@@ -51,8 +53,8 @@ def user_register(request):
 			'''
 			User does not exists into db. Insert.
 			'''
-			data['created'] = epoch(timezone.now())
-			data['updated'] = epoch(timezone.now())
+			data['created'] = helper.epoch(timezone.now())
+			data['updated'] = helper.epoch(timezone.now())
 					
 			serializer = UserSerializer(data=data)
 			
@@ -118,17 +120,16 @@ def applications(request, multiple):
 			'''
 			
 			for app in apps:
-				appsDict['id'] = app.app_id
+				appsDict['id'] = app.app_id_appstore
 				appsDict['n'] = app.app_name
 				appsDict['i'] = app.icon_url
 				appsDict['sc'] = app.url_schema
-				appsDict['asid'] = app.app_id_appstore
 				
 				'''
 				Check if app is blocked by user
 				'''
 				try:
-					appIsBlocked = UserBlockedApps.objects.get(user_id=user_id, app_id=app.app_id)
+					appIsBlocked = UserBlockedApps.objects.get(user_id=user_id, app_id=app.app_id_appstore)
 					continue
 					
 				except UserBlockedApps.DoesNotExist:
@@ -150,7 +151,7 @@ def applications(request, multiple):
 				Check number of pins for this app
 				'''
 				try:
-					appsDict['tpin'] = UserPinnedApps.objects.all().filter(app_id=app.app_id).count()
+					appsDict['tpin'] = UserPinnedApps.objects.all().filter(app_id=app.app_id_appstore).count()
 					
 				except UserPinnedApps.DoesNotExist:
 					appsDict['tpin'] = 0
@@ -159,11 +160,11 @@ def applications(request, multiple):
 				Check app type. MUST exist for all apps
 				'''
 				try:
-					appDeviceType = AppDeviceType.objects.get(app_id=app.app_id)
+					appDeviceType = AppDeviceType.objects.get(app_id=app.app_id_appstore)
 					appsDict['type'] = appDeviceType.device_type.name
 				
 				except AppDeviceType.DoesNotExist:
-					return ResponseGenerator.generic_error_param('App device type does not exist for app', app.app_id)
+					return ResponseGenerator.generic_error_param('App device type does not exist for app', app.app_id_appstore)
 					
 				'''
 				Check app price, storefront and currency code
@@ -173,9 +174,9 @@ def applications(request, multiple):
 				'''
 				storefront_id = 2
 				try:
-					appsDict['pr'] = AppPrice.objects.get(app_id=app.app_id, storefront_id=storefront_id).retail_price
-					appsDict['cu'] = AppPrice.objects.get(app_id=app.app_id, storefront_id=storefront_id).currency_code
-					appsDict['st'] = AppPrice.objects.get(app_id=app.app_id, storefront_id=storefront_id).storefront_id
+					appsDict['pr'] = AppPrice.objects.get(app_id=app.app_id_appstore, storefront_id=storefront_id).retail_price
+					appsDict['cu'] = AppPrice.objects.get(app_id=app.app_id_appstore, storefront_id=storefront_id).currency_code
+					appsDict['st'] = AppPrice.objects.get(app_id=app.app_id_appstore, storefront_id=storefront_id).storefront_id
 				
 				except AppPrice.DoesNotExist:
 					'''
@@ -218,7 +219,7 @@ def app_pin_unpin(request):
 				Get application
 				'''
 				appId = data['app']
-				app = Application.objects.get(app_id=appId)
+				app = Application.objects.get(app_id_appstore=appId)
 				
 				
 				'''
@@ -299,7 +300,7 @@ def app_block_unblock(request):
 				Get application
 				'''
 				appId = data['app']
-				app = Application.objects.get(app_id=appId)
+				app = Application.objects.get(app_id_appstore=appId)
 				
 				
 				'''
@@ -375,7 +376,7 @@ def app_share(request):
 				Get application
 				'''
 				appId = data['app']
-				app = Application.objects.get(app_id=appId)
+				app = Application.objects.get(app_id_appstore=appId)
 				
 				'''
 				Create object to be serialized
@@ -429,7 +430,7 @@ def app_detail(request, app_id):
 				'''
 				Get Application detail for given language
 				'''
-				appDetail = AppDetails.objects.get(app_id=app.app_id, language_code=lang)
+				appDetail = AppDetails.objects.get(app_id=app.app_id_appstore, language_code=lang)
 				
 				return ResponseGenerator.ok_with_message(serializeAppDetail(appDetail))
 				
@@ -441,7 +442,7 @@ def app_detail(request, app_id):
 					'''
 					Return any other app detail
 					'''
-					appDetail = AppDetails.objects.all().filter(app_id=app.app_id)
+					appDetail = AppDetails.objects.all().filter(app_id=app.app_id_appstore)
 					
 					return ResponseGenerator.ok_with_message(serializeAppDetail(appDetail))
 					
@@ -489,7 +490,7 @@ def user_apps(request, user_id):
 			pinnedAppsResponse = {}
 			
 			for pinnedApp in pinnedApps:
-				pinnedAppsResponse['id'] = pinnedApp.app.app_id
+				pinnedAppsResponse['id'] = pinnedApp.app.app_id_appstore
 				pinnedAppsResponse['n'] = pinnedApp.app.app_name
 				pinnedAppsResponse['i'] = pinnedApp.app.icon_url
 				pinnedArray.append(pinnedAppsResponse.copy())
@@ -505,7 +506,7 @@ def user_apps(request, user_id):
 			blockedAppsResponse = {}
 			
 			for blockedApp in blockedApps:
-				blockedAppsResponse['id'] = blockedApp.app.app_id
+				blockedAppsResponse['id'] = blockedApp.app.app_id_appstore
 				blockedAppsResponse['n'] = blockedApp.app.app_name
 				blockedAppsResponse['i'] = blockedApp.app.icon_url
 				blockedArray.append(blockedAppsResponse.copy())
@@ -515,7 +516,7 @@ def user_apps(request, user_id):
 			return ResponseGenerator.ok_with_message(response)
 			
 		except User.DoesNotExist:
-			return ResponseGenerator.user_not_exist_error(userId)
+			return ResponseGenerator.user_not_exist_error(user_id)
 			
 
 @csrf_exempt
@@ -535,56 +536,8 @@ def installed_apps(request):
 		appsWithSchemeArray = []
 		
 		for app in appQuery:
-			appsWithScheme['i'] = app.app_id
+			appsWithScheme['i'] = app.app_id_appstore
 			appsWithScheme['s'] = app.url_schema
 			appsWithSchemeArray.append(appsWithScheme.copy())
 			
 		return ResponseGenerator.ok_with_message(appsWithSchemeArray)
-'''
-PRIVATE METHODS
-'''
-import time
-
-def epoch(now_time):
-	return time.mktime(now_time.timetuple())
-
-'''
-URL SCHEMES SCRAPPING
-'''
-
-from urllib3 import PoolManager
-from bs4 import BeautifulSoup
-
-def scrape():
-
-	i = 1
-	manager = PoolManager()
-	
-	while i <= 1:
-		r = manager.request('GET', 'http://handleopenurl.com/api/v1.2/list.xml?apikey=e4f76a3591abb85f2369d91027f3e939&page=%d' % i)
-		soup = BeautifulSoup(r.data)
-		
-		handleopenurl = soup.handleopenurl
-		
-		for bundle in soup.findAll('cfbundle'):
-			scheme = unquote(bundle.urlscheme.text)
-			print(scheme)
-						
-			displayname = unquote(bundle.displayname.text)
-			print(displayname)
-
-			try:
-				app = Application.objects.get(app_name=displayname)
-				if app:
-					print(app)
-					#app.url_schema = scheme
-			except Application.DoesNotExist:
-				'''
-				App does not exist
-				'''
-		i=i+1	
-
-import re
-
-def unquote(url):
-  return re.compile('%([0-9a-fA-F]{2})',re.M).sub(lambda m: chr(int(m.group(1),16)), url)
