@@ -235,8 +235,8 @@ class Genre(models.Model):
 
 
 class GenreApp(models.Model):
-    genre = models.ForeignKey(Genre, on_delete=models.CASCADE)
-    app = models.ForeignKey(Application, on_delete=models.CASCADE)
+    genre = models.IntegerField(primary_key=True)
+    app = models.PositiveIntegerField(primary_key=True)
     is_primary = models.BooleanField()
 
     objects = models.GeoManager()
