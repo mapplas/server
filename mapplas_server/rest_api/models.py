@@ -126,7 +126,7 @@ class UserSharedApps(models.Model):
 
 class AppDetails(models.Model):
 	app_id = models.PositiveIntegerField(primary_key=True)
-	language_code = models.CharField('2 Digit ISO', primary_key=True, max_length=20)
+	language_code = models.CharField('2 Digit ISO', max_length=20)
 	title = models.CharField(max_length=1000)
 	description = models.TextField()
 	screenshot1 = models.CharField(max_length=1000, null=True)
@@ -141,8 +141,12 @@ class AppDetails(models.Model):
 	
 	objects = models.GeoManager()
 	
+	class Meta:
+		unique_together = ('app_id', 'language_code')
+		
+		
 	def __str__(self):
-		return self.app.app_name + " - (" + self.language_code + ") " + self.title 
+		return self.app_id + " - (" + self.language_code + ") " + self.title 
 
 
 class Storefront(models.Model):
@@ -170,14 +174,17 @@ class Geometry(models.Model):
 
 class AppPrice(models.Model):
     app_id = models.PositiveIntegerField(primary_key=True)
-    storefront_id = models.IntegerField(primary_key=True)
+    storefront_id = models.IntegerField()
     retail_price = models.FloatField()
     currency_code = models.CharField('3 Digit ISO', max_length=20)
 
     objects = models.GeoManager()
+    
+    class Meta:
+    	unique_together = ('app_id', 'storefront_id')
 
     def __str__(self):
-        return self.app.app_name + ': ' + self.retail_price
+        return self.app_id + ': ' + self.retail_price
 
 
 class DeviceType(models.Model):
@@ -234,25 +241,31 @@ class Genre(models.Model):
 
 class GenreApp(models.Model):
     genre_id = models.IntegerField(primary_key=True)
-    app_id = models.PositiveIntegerField(primary_key=True)
+    app_id = models.PositiveIntegerField()
     is_primary = models.BooleanField()
 
     objects = models.GeoManager()
+    
+    class Meta:
+    	unique_together = ('genre_id', 'app_id')
 
     def __str__(self):
-        return self.app.app_name + ' - ' + self.genre.name
+        return self.app_id + ' - ' + self.genre_id
 
 
 class Ranking(models.Model):
-    storefront_id = models.IntegerField(primary_key=True)
+    storefront_id = models.IntegerField()
     app_id = models.PositiveIntegerField(primary_key=True)
-    genre_id = models.IntegerField(primary_key=True)
+    genre_id = models.IntegerField()
     app_rank = models.IntegerField()
 
     objects = models.GeoManager()
+    
+    class Meta:
+    	unique_together = ('storefront_id', 'app_id', 'genre_id')
 
     def __str__(self):
-        return self.app.app_name + ' - ' + self.storefront.country_code + ' - ' + self.genre.name + '. Ranking: ' + self.app_rank
+        return self.app_id + ' - Storefront: ' + self.storefront_id + ' - Genre: ' + self.genre_id + '. Ranking: ' + self.app_rank
 
 
 class Review(models.Model):
