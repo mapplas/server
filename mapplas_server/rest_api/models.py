@@ -125,7 +125,7 @@ class UserSharedApps(models.Model):
 
 
 class AppDetails(models.Model):
-	app_id = models.PositiveIntegerField(primary_key=True)
+	app_id = models.PositiveIntegerField()
 	language_code = models.CharField('2 Digit ISO', max_length=20)
 	title = models.CharField(max_length=1000)
 	description = models.TextField()
@@ -173,7 +173,7 @@ class Geometry(models.Model):
 
 
 class AppPrice(models.Model):
-    app_id = models.PositiveIntegerField(primary_key=True)
+    app_id = models.PositiveIntegerField()
     storefront_id = models.IntegerField()
     retail_price = models.FloatField()
     currency_code = models.CharField('3 Digit ISO', max_length=20)
@@ -219,13 +219,16 @@ class Developer(models.Model):
 
 
 class DeveloperApp(models.Model):
-    app = models.ForeignKey(Application, on_delete=models.CASCADE)
-    developer = models.ForeignKey(Developer, on_delete=models.CASCADE)
+    app_id = models.PositiveIntegerField()
+    developer_id = models.IntegerField()
 
     objects = models.GeoManager()
+    
+    class Meta:
+    	unique_together = ('app_id', 'developer_id')
 
     def __str__(self):
-        return self.app.app_name + ' - ' + self.developer.name
+        return self.app_id + ' - ' + self.developer_id
 
 
 class Genre(models.Model):
@@ -240,7 +243,7 @@ class Genre(models.Model):
 
 
 class GenreApp(models.Model):
-    genre_id = models.IntegerField(primary_key=True)
+    genre_id = models.IntegerField()
     app_id = models.PositiveIntegerField()
     is_primary = models.BooleanField()
 
@@ -255,7 +258,7 @@ class GenreApp(models.Model):
 
 class Ranking(models.Model):
     storefront_id = models.IntegerField()
-    app_id = models.PositiveIntegerField(primary_key=True)
+    app_id = models.PositiveIntegerField()
     genre_id = models.IntegerField()
     app_rank = models.IntegerField()
 
