@@ -125,8 +125,6 @@ class UserSharedApps(models.Model):
 
 
 class AppDetails(models.Model):
-    #app = models.ForeignKey(Application, on_delete=models.CASCADE)
-    #language_code = models.CharField('2 Digit ISO', max_length=20)
 	app_id = models.PositiveIntegerField(primary_key=True)
 	language_code = models.CharField('2 Digit ISO', primary_key=True, max_length=20)
 	title = models.CharField(max_length=1000)
@@ -171,8 +169,8 @@ class Geometry(models.Model):
 
 
 class AppPrice(models.Model):
-    app = models.ForeignKey(Application, on_delete=models.CASCADE)
-    storefront = models.ForeignKey(Storefront, on_delete=models.CASCADE)
+    app_id = models.PositiveIntegerField(primary_key=True)
+    storefront_id = models.IntegerField(primary_key=True)
     retail_price = models.FloatField()
     currency_code = models.CharField('3 Digit ISO', max_length=20)
 
@@ -235,8 +233,8 @@ class Genre(models.Model):
 
 
 class GenreApp(models.Model):
-    genre = models.IntegerField(primary_key=True)
-    app = models.PositiveIntegerField(primary_key=True)
+    genre_id = models.IntegerField(primary_key=True)
+    app_id = models.PositiveIntegerField(primary_key=True)
     is_primary = models.BooleanField()
 
     objects = models.GeoManager()
@@ -246,9 +244,9 @@ class GenreApp(models.Model):
 
 
 class Ranking(models.Model):
-    storefront = models.ForeignKey(Storefront, on_delete=models.CASCADE)
-    app = models.ForeignKey(Application, on_delete=models.CASCADE)
-    genre = models.ForeignKey(Genre, on_delete=models.CASCADE)
+    storefront_id = models.IntegerField(primary_key=True)
+    app_id = models.PositiveIntegerField(primary_key=True)
+    genre_id = models.IntegerField(primary_key=True)
     app_rank = models.IntegerField()
 
     objects = models.GeoManager()
