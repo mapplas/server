@@ -1,15 +1,25 @@
 import sys
 import nltk
+import mmap
 
 from nltk.corpus import treebank
-#from nltk.corpus import conll2000
 
 from rest_api.models import Application
 
 
 def load():
 
-	first_app_list = Application.objects.all()[:1000]
+	# Define grammar
+	grammar = r"""
+				  NP: {<NN.*>+}          # Chunk sequences of NN
+			  """
+	cp = nltk.RegexpParser(grammar)
+	
+	# Open geonames file
+	geonames_file = open('/home/ubuntu/nltk_data/corpora/gazetteers/geonames_names.txt', "r")
+
+	# Get app array
+	first_app_list = Application.objects.all()[:500]
 	
 	for app in first_app_list:
 		
@@ -21,24 +31,24 @@ def load():
 		description = description.encode('utf-8')
 		'''
 		
-		grammar = r"""
-					  NP: {<NN.*>+}          # Chunk sequences of NN
-				  """
-		cp = nltk.RegexpParser(grammar)
-		
 		sentences = parse(name)
 		tree = cp.parse(sentences[0])
 	
 		for node in tree:
 			if hasattr(node, 'node'):
 				if node.node == 'NP':
-					listOfWords = [] 
+					wordAppend = ""
 					for element in node:
-						listOfWords.append(element[0])
+						wordAppend = wordAppend + ' ' + element[0]
 					
-					print (listOfWords)
-					
-					
+					print(wordAppend)
+						
+					for line in geonames_file:
+						if wordAppend in line:
+							print('!!!!!!!!!!! ' + wordAppend + ' ' + name)
+							break
+	
+	geonames_file.close()	
 					
 					
 '''
