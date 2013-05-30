@@ -1,6 +1,22 @@
 from django.contrib.gis.geos import Point, GEOSGeometry
+from django.core.files import File
+from django.contrib.gis.db.models import Union
 
 from spain_multipolygons.models import SpainRegions
+
+'''
+Prints regions for province given
+'''
+def regions_for_province(prov):
+	
+	combined_area = SpainRegions.objects.filter(province=prov).aggregate(area=Union('mpoly'))['area']
+	
+	gipuzkoa_mpoly_file = open('/home/ubuntu/server/mapplas_server/spain_multipolygons/gipuzkoa_mpoly.txt', 'w')
+	myFile = File(gipuzkoa_mpoly_file)
+	
+	gipuzkoa_mpoly_file.write(str(combined_area))
+	
+	gipuzkoa_mpoly_file.close()
 
 
 '''
