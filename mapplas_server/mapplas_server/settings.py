@@ -140,6 +140,7 @@ INSTALLED_APPS = (
     'rest_framework',
     'rest_api',
     'spain_multipolygons',
+    'geonames',
 )
 
 # A sample logging configuration. The only tangible logging
