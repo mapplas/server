@@ -1,9 +1,12 @@
 # Django settings for mapplas_server project.
 # -*- coding: utf8 -*-
 import os.path
+import djcelery
 
 DEBUG = True
 TEMPLATE_DEBUG = DEBUG
+
+djcelery.setup_loader()
 
 #APPEND_SLASH=False
 
@@ -20,7 +23,7 @@ DATABASES = {
 
         'USER': 'postgres',
         'PASSWORD': 'admin',
-        'HOST': '10.210.134.179',   					# Empty for localhost through domain sockets or '127.0.0.1' for localhost through TCP.
+        'HOST': '10.210.174.67',   					# Empty for localhost through domain sockets or '127.0.0.1' for localhost through TCP.
         'PORT': '',                                     # Set to empty string for default.
     }
 }
@@ -136,11 +139,11 @@ INSTALLED_APPS = (
     # Uncomment the next line to enable admin documentation:
     # 'django.contrib.admindocs',
     'django.contrib.gis',
-    # REST framework
+	'djcelery',
     'rest_framework',
     'rest_api',
     'spain_multipolygons',
-    'geonames',
+    'entity_extractor',
 )
 
 # A sample logging configuration. The only tangible logging
@@ -171,3 +174,6 @@ LOGGING = {
         },
     }
 }
+
+# Celery config
+BROKER_URL = 'django://guest:guest@localhost:5672/'

@@ -1,94 +1,84 @@
-import sys
-import nltk
-import mmap
+import re
 
-from nltk.corpus import treebank
+from entity_extractor.models import geonames_all_countries
+from entity_extractor.models import spain_regions
+
+from spain_multipolygons import views
+from spain_multipolygons.models import SpainRegions
 
 from rest_api.models import Application
 
+from celery import task
 
-def load():
 
-	# Define grammar
-	grammar = r"""
-				  NP: {<NN.*>+}          # Chunk sequences of NN
-			  """
-	cp = nltk.RegexpParser(grammar)
-	
-	# Open geonames file
-	geonames_file = open('/home/ubuntu/nltk_data/corpora/gazetteers/geonames_names.txt', "r")
+def find_geonames_in_apps_for_spain_regions():
 
-	# Get app array
-	first_app_list = Application.objects.all()[:500]
+	#file_to_write = open('/home/ubuntu/server/apps.txt', 'w')
+
+	spain_region = spain_regions.objects.all()
 	
-	for app in first_app_list:
-		
-		name = app.app_name
-		name = name.encode('utf-8')
-		
-		'''
-		description = app.app_description
-		description = description.encode('utf-8')
-		'''
-		
-		sentences = parse(name)
-		tree = cp.parse(sentences[0])
+	for region in spain_region:
+		print(region.name1)
+		print('************')
 	
-		for node in tree:
-			if hasattr(node, 'node'):
-				if node.node == 'NP':
-					wordAppend = ""
-					for element in node:
-						wordAppend = wordAppend + ' ' + element[0]
-					
-					print(wordAppend)
-						
-					for line in geonames_file:
-						if wordAppend in line:
-							print('!!!!!!!!!!! ' + wordAppend + ' ' + name)
-							break
-	
-	geonames_file.close()	
-					
-					
+		regex = r'^.*(%s).*$' % region.name1
+		apps = Application.objects.filter(app_description__iregex = regex)
+		print(apps)
+		
+		if region.name2:
+			print(region.name2)
+			print('************')
+			
+			regex = r'^.*(%s).*$' % region.name2
+			apps_idiom = Application.objects.filter(app_description__iregex = regex)
+			print(apps_idiom)
+			
+	#file_to_write.close()
+
+		
 '''
-sentences = parse(description)
-train_sents = conll2000.chunked_sents('train.txt', chunk_types=['NP'])
+Returns geonames for given country and province
+'''
+def geonames_in_country_and_province(country, province):
+	country = 'Europe/Madrid'
+	province = 'Gipuzkoa'
 
-for sent in sentences:
-	chunk_parser = ChunkParser(train_sents)
-	tree = chunk_parser.parse(sent)
+	geonames = geonames_all_countries.objects.filter(country=country)
+	province_cities = SpainRegions.objects.filter(province=province)
+	searched_geonames = []
 	
-	for subtree in tree.subtrees(filter=lambda t: t.node == 'NP'):
-	    # print the noun phrase as a list of part-of-speech tagged words
-	    # print subtree.leaves()
-	    for chunk in nltk.ne_chunk(subtree.leaves()):
-	    	if hasattr(chunk, 'node'): 
-				if chunk.node == "GPE":
-					print(chunk)
-'''
+	for place in geonames:
+	
+		lat = place.latitude
+		lon = place.longitude
 		
-	
-	
-def parse(document):
-	sentences = nltk.sent_tokenize(document) 
-	sentences = [nltk.word_tokenize(sent) for sent in sentences] 
-	sentences = [nltk.pos_tag(sent) for sent in sentences]
-	
-	return sentences
-	
-'''	
-class ChunkParser(nltk.ChunkParserI):
-	def __init__(self, train_sents):
-		train_data = [[(t,c) for w,t,c in nltk.chunk.util.tree2conlltags(sent)]
-		for sent in train_sents]
-		self.tagger = nltk.TrigramTagger(train_data)
+		point_place = views.get_point(lat, lon)
 		
-	def parse(self, sentence):
-		pos_tags = [pos for (word,pos) in sentence]
-		tagged_pos_tags = self.tagger.tag(pos_tags)
-		chunktags = [chunktag for (pos, chunktag) in tagged_pos_tags]
-		conlltags = [(word, pos, chunktag) for ((word,pos),chunktag)
-		in zip(sentence, chunktags)]
-		return nltk.chunk.util.conlltags2tree(conlltags)
+		for city in province_cities:
+			if (city.mpoly.contains(point_place)):
+				searched_geonames(place)
+				
+	print(searched_geonames)
+	
+		
 '''
+Inserts into geonames_GeoNames_all_countries table given province value to given country name
+
+set_province_column_to('Gipuzkoa', 'Europe/Madrid')
+'''
+def set_province_column_to(province_to_set, country_to_search):
+
+	country_geonames = geonames_all_countries.objects.filter(country=country_to_search)
+	province_cities = SpainRegions.objects.filter(province=province_to_set)
+	
+	for place in country_geonames:
+
+		lat = place.latitude
+		lon = place.longitude
+		
+		point_place = views.get_point(lat, lon)
+		
+		for city in province_cities:
+			if (city.mpoly.contains(point_place)):
+				place.province = province_to_set
+				place.save()
