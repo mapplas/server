@@ -36,9 +36,11 @@ class geonames_all_countries(models.Model):
 		return self.name1 + ' ' + self.country
 		
 		
-class spain_regions(models.Model):
+class SpainRegions(models.Model):
 	name1 = models.TextField()
 	name2 = models.TextField(null=True)
+	
+	parnet = models.IntegerField(null=True)
 	
 	mpoly = models.MultiPolygonField(null=True)
 		
