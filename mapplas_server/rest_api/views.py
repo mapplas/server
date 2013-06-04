@@ -124,7 +124,6 @@ def applications(request, multiple):
 			'''
 			from_app = int(int(multiple) * int(AppListSize.SIZE_OF_LIST))
 			to_app = int(from_app + int(AppListSize.SIZE_OF_LIST))
-			print('%d : %d'% (from_app, to_app))
 			apps = apps[from_app:to_app]
 			
 			for app in apps:
@@ -136,24 +135,24 @@ def applications(request, multiple):
 				'''
 				Check if app is blocked by user
 				'''
-				#try:
-				#	appIsBlocked = UserBlockedApps.objects.get(user_id=user_id, app_id=app.app_id_appstore)
-				#	continue
+				try:
+					appIsBlocked = UserBlockedApps.objects.get(user_id=user_id, app_id=app.app_id_appstore)
+					continue
 					
-				#except UserBlockedApps.DoesNotExist:
-				'''
-				Do nothing
-				'''
+				except UserBlockedApps.DoesNotExist:
+					'''
+					Do nothing
+					'''
 				
 				'''
 				Check if app is pinned by user
 				'''
-				#try:
-				#	appIsPinned = userPinnedApps.get(app_id=app.app_id)
-				#	appsDict['pin'] = 1
+				try:
+					appIsPinned = userPinnedApps.get(app_id=app.app_id_appstore)
+					appsDict['pin'] = 1
 
-				#except UserPinnedApps.DoesNotExist:
-				#	appsDict['pin'] = 0
+				except UserPinnedApps.DoesNotExist:
+					appsDict['pin'] = 0
 					
 				'''
 				Check number of pins for this app
@@ -177,21 +176,23 @@ def applications(request, multiple):
 				'''
 				Check app price, storefront and currency code
 				App price, 0 or float.
-				Storefront: 1 Spanish Appstore, 2 American Appstore
+				Storefront: 143454 Spanish Appstore, 143441 American Appstore
 				Currency Code, ISO codes: EUR for euro, USD for United States dollar
 				'''
-				#storefront_id = 2
-				#try:
-				#	appsDict['pr'] = AppPrice.objects.get(app_id=app.app_id_appstore, storefront_id=storefront_id).retail_price
-				#	appsDict['cu'] = AppPrice.objects.get(app_id=app.app_id_appstore, storefront_id=storefront_id).currency_code
-				#	appsDict['st'] = AppPrice.objects.get(app_id=app.app_id_appstore, storefront_id=storefront_id).storefront_id
-				
-				#except AppPrice.DoesNotExist:
-				'''
-				HTML5 app
-				'''
-				
-				appsArray.append(appsDict.copy())
+				storefront_id = 143454
+				try:
+					appsDict['pr'] = AppPrice.objects.get(app_id=app.app_id_appstore, storefront_id=storefront_id).retail_price
+					appsDict['cu'] = AppPrice.objects.get(app_id=app.app_id_appstore, storefront_id=storefront_id).currency_code
+					appsDict['st'] = AppPrice.objects.get(app_id=app.app_id_appstore, storefront_id=storefront_id).storefront_id
+					
+					appsArray.append(appsDict.copy())
+					
+				except AppPrice.DoesNotExist:
+					'''
+					App does not exist on that appstore
+					Do not add app to dictionary
+					'''
+					
 				
 			response['apps'] = appsArray
 			response['last'] = 0
@@ -213,6 +214,7 @@ def app_pin_unpin(request):
 	'''
 	if request.method == 'POST':
 		data = request.DATA
+		response_generator = ResponseGenerator()
 		
 		try:
 			'''	
@@ -241,7 +243,7 @@ def app_pin_unpin(request):
 					try:
 						pinnedApp = UserPinnedApps.objects.get(app_id=appId, user_id=userId)
 						
-						return ResponseGenerator.generic_error('Application already pinned')
+						return response_generator.generic_error('Application already pinned')
 						
 					except UserPinnedApps.DoesNotExist:
 						'''
@@ -252,16 +254,16 @@ def app_pin_unpin(request):
 						dataToSerialize['app'] = appId
 						dataToSerialize['lon'] = data['lon']
 						dataToSerialize['lat'] = data['lat']
-						dataToSerialize['created'] = epoch(timezone.now())
+						dataToSerialize['created'] = helper.epoch(timezone.now())
 						
 						serializer = UserPinnedAppSerializer(data=dataToSerialize)
 						
 						if serializer.is_valid():
 							serializer.save()
 							
-							return ResponseGenerator.ok_response()
+							return response_generator.ok_response()
 						else:
-							return ResponseGenerator.serializer_error(serializer.errors)
+							return response_generator.serializer_error(serializer.errors)
 							
 				elif action=='unpin':
 					'''
@@ -271,19 +273,19 @@ def app_pin_unpin(request):
 						pinnedApp = UserPinnedApps.objects.get(app_id=appId, user_id=userId)
 						pinnedApp.delete()
 						
-						return ResponseGenerator.ok_response()
+						return response_generator.ok_response()
 						
 					except UserPinnedApps.DoesNotExist:
-						return ResponseGenerator.generic_error('Application was not pinned before')
+						return response_generator.generic_error('Application was not pinned before')
 					
 				else:
-					return ResponseGenerator.unsupported_action_error(action)
+					return response_generator.unsupported_action_error(action)
 					
 			except Application.DoesNotExist:
-				return ResponseGenerator.app_not_exist_error(appId)
+				return response_generator.app_not_exist_error(appId)
 			
 		except User.DoesNotExist:
-			return ResponseGenerator.user_not_exist_error(userId)
+			return response_generator.user_not_exist_error(userId)
 
 
 @csrf_exempt
@@ -294,6 +296,7 @@ def app_block_unblock(request):
 	'''
 	if request.method == 'POST':
 		data = request.DATA
+		response_generator = ResponseGenerator()
 		
 		try:
 			'''	
@@ -319,7 +322,7 @@ def app_block_unblock(request):
 					try:
 						blockedApp = UserBlockedApps.objects.get(app_id=appId, user_id=userId)
 						
-						return ResponseGenerator.generic_error('Application already blocked')
+						return response_generator.generic_error('Application already blocked')
 						
 					except UserBlockedApps.DoesNotExist:
 						'''
@@ -328,16 +331,16 @@ def app_block_unblock(request):
 						dataToSerialize = {}
 						dataToSerialize['user'] = userId
 						dataToSerialize['app'] = appId
-						dataToSerialize['created'] = epoch(timezone.now())
+						dataToSerialize['created'] = helper.epoch(timezone.now())
 						
 						serializer = UserBlockedAppSerializer(data=dataToSerialize)
 						
 						if serializer.is_valid():
 							serializer.save()
 							
-							return ResponseGenerator.ok_response()
+							return response_generator.ok_response()
 						else:
-							return ResponseGenerator.serializer_error(serializer.errors)
+							return response_generator.serializer_error(serializer.errors)
 				
 				elif action=='unblock':
 					'''
@@ -347,19 +350,19 @@ def app_block_unblock(request):
 						blockedApp = UserBlockedApps.objects.get(app_id=appId, user_id=userId)
 						blockedApp.delete()
 					
-						return ResponseGenerator.ok_response()
+						return response_generator.ok_response()
 						
 					except UserBlockedApps.DoesNotExist:
-						return ResponseGenerator.generic_error('Application was not blocked before')
+						return response_generator.generic_error('Application was not blocked before')
 				
 				else:
-					return ResponseGenerator.unsupported_action_error(action)
+					return response_generator.unsupported_action_error(action)
 				
 			except Application.DoesNotExist:
-				return ResponseGenerator.app_not_exist_error(appId)
+				return response_generator.app_not_exist_error(appId)
 			
 		except User.DoesNotExist:
-			return ResponseGenerator.user_not_exist_error(userId)
+			return response_generator.user_not_exist_error(userId)
 			
 
 @csrf_exempt
@@ -370,6 +373,7 @@ def app_share(request):
 	'''
 	if request.method == 'POST':
 		data = request.DATA
+		response_generator = ResponseGenerator()
 		
 		try:
 			'''	
@@ -394,23 +398,23 @@ def app_share(request):
 				dataToSerialize['lon'] = data['lon']
 				dataToSerialize['lat'] = data['lat']
 				dataToSerialize['via'] = data['via']
-				dataToSerialize['created'] = epoch(timezone.now())
+				dataToSerialize['created'] = helper.epoch(timezone.now())
 						
 				serializer = UserSharedAppSerializer(data=dataToSerialize)
 						
 				if serializer.is_valid():
 					serializer.save()
 					
-					return ResponseGenerator.ok_response()
+					return response_generator.ok_response()
 					
 				else:
-					return ResponseGenerator.serializer_error(serializer.errors)
+					return response_generator.serializer_error(serializer.errors)
 							
 			except Application.DoesNotExist:
-				return ResponseGenerator.app_not_exist_error(appId)
+				return response_generator.app_not_exist_error(appId)
 			
 		except User.DoesNotExist:
-			return ResponseGenerator.user_not_exist_error(userId)
+			return response_generator.user_not_exist_error(userId)
 
 
 @csrf_exempt
@@ -421,6 +425,7 @@ def app_detail(request, app_id):
 	'''
 	if request.method == 'POST':
 		data = request.DATA
+		response_generator = ResponseGenerator()
 		
 		'''
 		Get language
@@ -439,7 +444,7 @@ def app_detail(request, app_id):
 				'''
 				appDetail = AppDetails.objects.get(app_id=app.app_id_appstore, language_code=lang)
 				
-				return ResponseGenerator.ok_with_message(serializeAppDetail(appDetail))
+				return response_generator.ok_with_message(serializeAppDetail(appDetail))
 				
 			except AppDetails.DoesNotExist:
 				'''
@@ -451,13 +456,13 @@ def app_detail(request, app_id):
 					'''
 					appDetail = AppDetails.objects.all().filter(app_id=app.app_id_appstore)
 					
-					return ResponseGenerator.ok_with_message(serializeAppDetail(appDetail))
+					return response_generator.ok_with_message(serializeAppDetail(appDetail))
 					
 				except AppDetails.DoesNotExist:
-					return ResponseGenerator.generic_error_param('ApplicationDetail does not exist for id', app_id)
+					return response_generator.generic_error_param('ApplicationDetail does not exist for id', app_id)
 			
 		except Application.DoesNotExist:
-			return ResponseGenerator.app_not_exist_error(app_id)
+			return response_generator.app_not_exist_error(app_id)
 
 
 def serializeAppDetail(app_detail):
@@ -480,6 +485,7 @@ def user_apps(request, user_id):
 	'''
 	if request.method == 'POST':
 		data = request.DATA
+		response_generator = ResponseGenerator()
 		
 		'''
 		Get user
@@ -520,10 +526,10 @@ def user_apps(request, user_id):
 			
 			response['blocked'] = blockedArray
 						
-			return ResponseGenerator.ok_with_message(response)
+			return response_generator.ok_with_message(response)
 			
 		except User.DoesNotExist:
-			return ResponseGenerator.user_not_exist_error(user_id)
+			return response_generator.user_not_exist_error(user_id)
 			
 
 @csrf_exempt
@@ -533,6 +539,7 @@ def installed_apps(request):
 	Returns all avaliable url scheme for given store
 	'''
 	if request.method == 'POST':
+		response_generator = ResponseGenerator()
 		
 		'''
 		Get all applications with url scheme
@@ -547,4 +554,4 @@ def installed_apps(request):
 			appsWithScheme['s'] = app.url_schema
 			appsWithSchemeArray.append(appsWithScheme.copy())
 			
-		return ResponseGenerator.ok_with_message(appsWithSchemeArray)
+		return response_generator.ok_with_message(appsWithSchemeArray)

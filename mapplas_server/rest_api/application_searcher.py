@@ -17,4 +17,8 @@ def search(lat, lon, accuracy):
 		app = Application.objects.get(app_id_appstore=geom.app.app_id_appstore)
 		apps.append(app)
 		
-	return apps
+	# Remove duplicated apps
+	apps_without_duplicates = list(set(apps))
+	
+
+	return apps_without_duplicates
