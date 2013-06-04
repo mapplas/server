@@ -70,11 +70,12 @@ def generate_multipolygons_for_regions():
 	
 	for region in regions:
 		print(region.province)
-		if (region.province != 'Granada') and (region.province != 'La Rioja') and (region.province != u'Lérida') and (region.province != 'Toledo') and (region.province != 'Valladolid') and (region.province != 'Zamora'):
+		
+		if region.province != 'mpoly_error':
 			
 			province_poly = SpainRegions.objects.filter(province=region.province).aggregate(area=Union('mpoly'))['area']
 			region_in_main_table = entity_extractor.models.SpainRegions.objects.get(name1=region.province)
-
+	
 			if province_poly:
 				if isinstance(province_poly, geos.Polygon):
 				
@@ -84,10 +85,10 @@ def generate_multipolygons_for_regions():
 				else:
 				
 					region_in_main_table.mpoly = province_poly
-
+	
 				region_in_main_table.save()
-					
 				print('mpoly saved')
+			
 				
 '''
 Generates a Multipolygon for spain authonomic comunities, from province multipolygons.
@@ -99,7 +100,7 @@ def generate_multipolygons_for_comunities():
 	for comunity in comunities:
 	
 		if not comunity.mpoly:
-			print(comunity.name1 + 'YES')
+			print(comunity.name1 + ' YES')
 			parent_id = comunity.id
 			subs_mpoly = entity_extractor.models.SpainRegions.objects.filter(parnet=parent_id).aggregate(area=Union('mpoly'))['area']
 			
@@ -113,5 +114,5 @@ def generate_multipolygons_for_comunities():
 			comunity.save()
 			
 		else:
-			print('NO' + comunity.name1)
+			print('NO ' + comunity.name1)
 					

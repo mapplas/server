@@ -1,27 +1,33 @@
 import re
+import spain_multipolygons
 
 from entity_extractor.models import geonames_all_countries
 from entity_extractor.models import SpainRegions
 
-import spain_multipolygons
-from spain_multipolygons import views
-
 from rest_api.models import Application, Storefront, AppPrice, Geometry
 
-from celery import task
+'''
+--> Manual <-- method of main method.
+'''
+def find_geonames_in_apps_for_spain_regions_giving_region(region):
+	print(region)
+	
+	regex = r'^.*(%s).*$' % region
+	apps_region = Application.objects.filter(app_description__iregex = regex)
+	
+	check_apps(apps_region, region)
 
-
-def find_geonames_in_apps_for_spain_regions(region):
-
-	#file_to_write = open('/home/ubuntu/server/apps.txt', 'w')
+'''
+Main method to create geometry objects for apps in regions.
+--> Automatic <--
+'''
+def find_geonames_in_apps_for_spain_regions():
 
 	spain_region = SpainRegions.objects.all()
 	
 	for region in spain_region:
 		print(region.name1)
 		print('************')
-		#file_to_write.write(region.name1.encode('utf-8'))
-		#file_to_write.write('**************')
 	
 		regex = r'^.*(%s).*$' % region.name1
 		apps_region = Application.objects.filter(app_description__iregex = regex)
@@ -32,15 +38,12 @@ def find_geonames_in_apps_for_spain_regions(region):
 		if region.name2:
 			print(region.name2)
 			print('************')
-			#file_to_write.write(region.name2.encode('utf-8'))
-			#file_to_write.write('**************')
 			
 			regex = r'^.*(%s).*$' % region.name2
 			apps_region_translated = Application.objects.filter(app_description__iregex = regex)
 			
 			check_apps(apps_region_translated, region)
-		
-	#file_to_write.close()
+			
 
 '''
 Check if apps exist for given region in storefront.

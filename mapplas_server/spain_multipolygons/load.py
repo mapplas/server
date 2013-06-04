@@ -11,10 +11,10 @@ region_mapping = {
     'mpoly' : 'MULTIPOLYGON',
 }
 
-region_shp = os.path.abspath(os.path.join(os.path.dirname(__file__), '/home/ubuntu/ENV/spain/52 [Melilla].shp'))
+region_shp = os.path.abspath(os.path.join(os.path.dirname(__file__), 'data/output.shp'))
 	
 def run(verbose=True):
-    lm = LayerMapping(SpainRegions, region_shp, region_mapping,
-                      transform=False, encoding='utf8')
 
-    lm.save(strict=True, verbose=verbose)
+	lm = LayerMapping(SpainRegions, region_shp, region_mapping, transform=False, encoding='utf8')
+	
+	lm.save(strict=True, verbose=verbose)
