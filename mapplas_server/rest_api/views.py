@@ -11,7 +11,8 @@ from rest_api.models import User, Application, UserPinnedApps, UserBlockedApps, 
 from rest_api.serializers import UserSerializer, ApplicationSerializer, UserPinnedAppSerializer, UserBlockedAppSerializer, UserSharedAppSerializer, AppDetailsSerializer, AppDeviceTypeSerializer
 from rest_api.errors import ResponseGenerator
 
-from rest_api import helper
+from rest_api import helper, application_searcher
+from rest_api.error_enum import AppListSize
 	
 @csrf_exempt
 @api_view(['POST'])
@@ -22,6 +23,7 @@ def user_register(request):
 	'''
 	if request.method == 'POST':
 		data = request.DATA
+		responseGenerator = ResponseGenerator()
 			
 		try:
 			'''
@@ -45,9 +47,9 @@ def user_register(request):
 				returnJson['imei'] = user.imei
 				returnJson['tel'] = user.tel
 				
-				return ResponseGenerator.ok_with_message(returnJson)
+				return responseGenerator.ok_with_message(returnJson)
 			else:
-				return ResponseGenerator.serializer_error(serializer.errors)
+				return responseGenerator.serializer_error(serializer.errors)
 
 		except User.DoesNotExist:
 			'''
@@ -72,9 +74,9 @@ def user_register(request):
 				returnJson['imei'] = user.imei
 				returnJson['tel'] = user.tel
 				
-				return ResponseGenerator.ok_with_message(returnJson)
+				return responseGenerator.ok_with_message(returnJson)
 			else:
-				return ResponseGenerator.serializer_error(serializer.errors)
+				return responseGenerator.serializer_error(serializer.errors)
 
 
 @csrf_exempt
@@ -85,6 +87,8 @@ def applications(request, multiple):
 	'''
 	if request.method == 'POST':
 		data = request.DATA
+		
+		response_generator = ResponseGenerator()
 		
 		lat = data['lat']
 		lon = data['lon']
@@ -112,12 +116,16 @@ def applications(request, multiple):
 				Do nothing
 				'''
 			
-			apps = Application.objects.all()
+			apps = application_searcher.search(lat, lon, accuracy)
 			
 			'''
 			If multiple = 0, get first 25 (0*25=0 -> from 0 to 25) apps
 			If multiple = 1, get next 25 (1*25=25 -> from 25 to 50) apps
 			'''
+			from_app = int(int(multiple) * int(AppListSize.SIZE_OF_LIST))
+			to_app = int(from_app + int(AppListSize.SIZE_OF_LIST))
+			print('%d : %d'% (from_app, to_app))
+			apps = apps[from_app:to_app]
 			
 			for app in apps:
 				appsDict['id'] = app.app_id_appstore
@@ -128,24 +136,24 @@ def applications(request, multiple):
 				'''
 				Check if app is blocked by user
 				'''
-				try:
-					appIsBlocked = UserBlockedApps.objects.get(user_id=user_id, app_id=app.app_id_appstore)
-					continue
+				#try:
+				#	appIsBlocked = UserBlockedApps.objects.get(user_id=user_id, app_id=app.app_id_appstore)
+				#	continue
 					
-				except UserBlockedApps.DoesNotExist:
-					'''
-					Do nothing
-					'''
+				#except UserBlockedApps.DoesNotExist:
+				'''
+				Do nothing
+				'''
 				
 				'''
 				Check if app is pinned by user
 				'''
-				try:
-					appIsPinned = userPinnedApps.get(app_id=app.app_id)
-					appsDict['pin'] = 1
+				#try:
+				#	appIsPinned = userPinnedApps.get(app_id=app.app_id)
+				#	appsDict['pin'] = 1
 
-				except UserPinnedApps.DoesNotExist:
-					appsDict['pin'] = 0
+				#except UserPinnedApps.DoesNotExist:
+				#	appsDict['pin'] = 0
 					
 				'''
 				Check number of pins for this app
@@ -159,12 +167,12 @@ def applications(request, multiple):
 				'''
 				Check app type. MUST exist for all apps
 				'''
-				try:
-					appDeviceType = AppDeviceType.objects.get(app_id=app.app_id_appstore)
-					appsDict['type'] = appDeviceType.device_type.name
+				#try:
+				#	appDeviceType = AppDeviceType.objects.get(app_id=app.app_id_appstore)
+				#	appsDict['type'] = appDeviceType.device_type.name
 				
-				except AppDeviceType.DoesNotExist:
-					return ResponseGenerator.generic_error_param('App device type does not exist for app', app.app_id_appstore)
+				#except AppDeviceType.DoesNotExist:
+				#	return ResponseGenerator.generic_error_param('App device type does not exist for app', app.app_id_appstore)
 					
 				'''
 				Check app price, storefront and currency code
@@ -172,30 +180,29 @@ def applications(request, multiple):
 				Storefront: 1 Spanish Appstore, 2 American Appstore
 				Currency Code, ISO codes: EUR for euro, USD for United States dollar
 				'''
-				storefront_id = 2
-				try:
-					appsDict['pr'] = AppPrice.objects.get(app_id=app.app_id_appstore, storefront_id=storefront_id).retail_price
-					appsDict['cu'] = AppPrice.objects.get(app_id=app.app_id_appstore, storefront_id=storefront_id).currency_code
-					appsDict['st'] = AppPrice.objects.get(app_id=app.app_id_appstore, storefront_id=storefront_id).storefront_id
+				#storefront_id = 2
+				#try:
+				#	appsDict['pr'] = AppPrice.objects.get(app_id=app.app_id_appstore, storefront_id=storefront_id).retail_price
+				#	appsDict['cu'] = AppPrice.objects.get(app_id=app.app_id_appstore, storefront_id=storefront_id).currency_code
+				#	appsDict['st'] = AppPrice.objects.get(app_id=app.app_id_appstore, storefront_id=storefront_id).storefront_id
 				
-				except AppPrice.DoesNotExist:
-					'''
-					HTML5 app
-					'''
+				#except AppPrice.DoesNotExist:
+				'''
+				HTML5 app
+				'''
 				
-				appsArray.append(appsDict.copy())
 				appsArray.append(appsDict.copy())
 				
 			response['apps'] = appsArray
-			response['last'] = 1
+			response['last'] = 0
 			
-			return ResponseGenerator.ok_with_message(response)
+			return response_generator.ok_with_message(response)
 			
 		except User.DoesNotExist:
 			'''
 			Return error response
 			'''
-			return ResponseGenerator.user_not_exist_error(user_id)
+			return response_generator.user_not_exist_error(user_id)
 
 
 @csrf_exempt
