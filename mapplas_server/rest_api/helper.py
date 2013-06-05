@@ -3,8 +3,8 @@ import re
 
 from rest_api.models import Application
 
-from urllib3 import PoolManager
-from bs4 import BeautifulSoup
+#from urllib3 import PoolManager
+#from bs4 import BeautifulSoup
 
 
 '''
@@ -14,8 +14,7 @@ def epoch(now_time):
 	return time.mktime(now_time.timetuple())
 
 '''
-URL SCHEMES SCRAPPING
-'''
+URL 
 def scrape():
 
 	i = 1
@@ -40,10 +39,11 @@ def scrape():
 					print(app)
 					#app.url_schema = scheme
 			except Application.DoesNotExist:
-				'''
+				
 				App does not exist
-				'''
+				
 		i=i+1	
 
 def unquote(url):
   return re.compile('%([0-9a-fA-F]{2})',re.M).sub(lambda m: chr(int(m.group(1),16)), url)
+ '''
