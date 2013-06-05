@@ -1,4 +1,4 @@
-from rest_api.models import Application, Geometry, UserBlockedApps
+from rest_api.models import Application, Geometry, UserBlockedApps, UserPinnedApps
 
 from django.contrib.gis.geos import Point
 
@@ -41,3 +41,36 @@ def remove_user_blocked_apps(apps, user_id):
 			'''
 			
 	return apps
+	
+	
+'''
+SETS USER PINNED APPS AT THE BEGINNING OF THE LIST
+'''
+def pinned_apps_first(apps_ok_to_user, user_id):
+
+	user_pinned_apps = UserPinnedApps.objects.filter(user_id=user_id)
+
+	'''
+	Remove pinned apps from apps list
+	'''
+	for pinned_app in user_pinned_apps:
+	
+		for app in apps_ok_to_user:
+		
+			if pinned_app.app_id == app.app_id_appstore:
+				
+				apps_ok_to_user.remove(app)
+				
+	'''
+	Convert UserPinnedApps object list to app list
+	'''
+	pinned_apps = []
+	
+	for pinned_app in user_pinned_apps:
+	
+		pinned_apps.append(Application.objects.get(pk=pinned_app.app_id))
+		
+	'''
+	Add two lists, pinned apps before; and return
+	'''
+	return pinned_apps + apps_ok_to_user
