@@ -117,6 +117,7 @@ def applications(request, multiple):
 				'''
 			
 			apps = application_searcher.search(lat, lon, accuracy)
+			apps_ok_to_user = application_searcher.remove_user_blocked_apps(apps, user_id)
 			
 			'''
 			If multiple = 0, get first 25 (0*25=0 -> from 0 to 25) apps
@@ -124,25 +125,17 @@ def applications(request, multiple):
 			'''
 			from_app = int(int(multiple) * int(AppListSize.SIZE_OF_LIST))
 			to_app = int(from_app + int(AppListSize.SIZE_OF_LIST))
-			apps = apps[from_app:to_app]
+				
+			if (to_app - 1 > len(apps_ok_to_user)):		
+				to_app = len(apps_ok_to_user)
+			
+			apps = apps_ok_to_user[from_app:to_app] 
 			
 			for app in apps:
 				appsDict['id'] = app.app_id_appstore
 				appsDict['n'] = app.app_name
 				appsDict['i'] = app.icon_url
 				appsDict['sc'] = app.url_schema
-				
-				'''
-				Check if app is blocked by user
-				'''
-				try:
-					appIsBlocked = UserBlockedApps.objects.get(user_id=user_id, app_id=app.app_id_appstore)
-					continue
-					
-				except UserBlockedApps.DoesNotExist:
-					'''
-					Do nothing
-					'''
 				
 				'''
 				Check if app is pinned by user
@@ -195,7 +188,12 @@ def applications(request, multiple):
 					
 				
 			response['apps'] = appsArray
-			response['last'] = 0
+			
+			# Check if user can request for more apps
+			if (to_app == len(apps_ok_to_user)):
+				response['last'] = 1
+			else:
+				response['last'] = 0
 			
 			return response_generator.ok_with_message(response)
 			
@@ -443,20 +441,36 @@ def app_detail(request, app_id):
 				Get Application detail for given language
 				'''
 				appDetail = AppDetails.objects.get(app_id=app.app_id_appstore, language_code=lang)
-				
 				return response_generator.ok_with_message(serializeAppDetail(appDetail))
 				
 			except AppDetails.DoesNotExist:
 				'''
 				Application detail for given language does not exist
+				
+				Try with english version of app description
 				'''
 				try:
-					'''
-					Return any other app detail
-					'''
-					appDetail = AppDetails.objects.all().filter(app_id=app.app_id_appstore)
-					
+					appDetail = AppDetails.objects.get(app_id=app.app_id_appstore, language_code='EN')
 					return response_generator.ok_with_message(serializeAppDetail(appDetail))
+					
+				except AppDetails.DoesNotExist:
+					'''
+					Try with spanish version of app description
+					'''
+					try:
+						appDetail = AppDetails.objects.get(app_id=app.app_id_appstore, language_code='ES')
+						return response_generator.ok_with_message(serializeAppDetail(appDetail))
+						
+					except AppDetails.DoesNotExist:
+						'''
+						Return application default description
+						'''
+						appDetailToReturn = {}
+						appDetailToReturn ['d'] = app.app_description
+						appDetailToReturn ['curl'] = app.company_url
+						appDetailToReturn ['surl'] = app.support_url
+						
+						return response_generator.ok_with_message(appDetailToReturn)
 					
 				except AppDetails.DoesNotExist:
 					return response_generator.generic_error_param('ApplicationDetail does not exist for id', app_id)
@@ -466,11 +480,23 @@ def app_detail(request, app_id):
 
 
 def serializeAppDetail(app_detail):
+	
 	appDetailToReturn = {}
+	screenshots = []
+	if app_detail.screenshot1:
+		screenshots.append(app_detail.screenshot1)
+	
+	if app_detail.screenshot2:	
+		screenshots.append(app_detail.screenshot2)
+	
+	if app_detail.screenshot3:
+		screenshots.append(app_detail.screenshot3)
+
+	if app_detail.screenshot4:
+		screenshots.append(app_detail.screenshot4)
 	
 	appDetailToReturn ['d'] = app_detail.description
-	appDetailToReturn ['scr'] = app_detail.screenshots
-	#appDetailToReturn ['v'] = app_detail.video
+	appDetailToReturn ['scr'] = screenshots
 	appDetailToReturn ['curl'] = app_detail.company_url
 	appDetailToReturn ['surl'] = app_detail.support_url
 	
