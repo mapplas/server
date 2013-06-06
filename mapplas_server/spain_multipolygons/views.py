@@ -8,7 +8,7 @@ from django.contrib.gis.db.models import Union
 
 from spain_multipolygons.models import SpainRegions
 
-import entity_extractor
+from entity_extractor.models import Entities
 from django.contrib.gis import geos
 
 '''
@@ -74,20 +74,25 @@ def generate_multipolygons_for_regions():
 		if region.province != 'mpoly_error':
 			
 			province_poly = SpainRegions.objects.filter(province=region.province).aggregate(area=Union('mpoly'))['area']
-			region_in_main_table = entity_extractor.models.SpainRegions.objects.get(name1=region.province)
+			
+			try:
+				region_in_main_table = Entities.objects.get(name1=region.province, region_type_id='P')
 	
-			if province_poly:
-				if isinstance(province_poly, geos.Polygon):
-				
-					province_mpoly = geos.MultiPolygon(province_poly)
-					region_in_main_table.mpoly = province_mpoly
+				if province_poly:
+					if isinstance(province_poly, geos.Polygon):
 					
-				else:
-				
-					region_in_main_table.mpoly = province_poly
-	
-				region_in_main_table.save()
-				print('mpoly saved')
+						province_mpoly = geos.MultiPolygon(province_poly)
+						region_in_main_table.mpoly = province_mpoly
+						
+					else:
+					
+						region_in_main_table.mpoly = province_poly
+		
+					region_in_main_table.save()
+					print('mpoly saved')
+					
+			except Entities.DoesNotExist:
+				print('Does not exist Entity for province ' + region.province)
 			
 				
 '''
@@ -95,14 +100,14 @@ Generates a Multipolygon for spain authonomic comunities, from province multipol
 '''
 def generate_multipolygons_for_comunities():
 	
-	comunities = entity_extractor.models.SpainRegions.objects.order_by('name1').filter(parnet=0)
+	comunities = Entities.objects.order_by('name1').filter(parent=0)
 	
 	for comunity in comunities:
 	
 		if not comunity.mpoly:
 			print(comunity.name1 + ' YES')
 			parent_id = comunity.id
-			subs_mpoly = entity_extractor.models.SpainRegions.objects.filter(parnet=parent_id).aggregate(area=Union('mpoly'))['area']
+			subs_mpoly = Entities.objects.filter(parent=parent_id).aggregate(area=Union('mpoly'))['area']
 			
 			if subs_mpoly:
 				if isinstance(subs_mpoly, geos.Polygon):
