@@ -20,8 +20,7 @@ def search(lat, lon, accuracy):
 	# Remove duplicated apps
 	apps_without_duplicates = list(set(apps))
 	return apps_without_duplicates
-	
-	
+
 '''
 REMOVES USER BLOCKED APPS FROM GIVEN APPLICATION LIST
 '''
@@ -46,9 +45,8 @@ def remove_user_blocked_apps(apps, user_id):
 '''
 SETS USER PINNED APPS AT THE BEGINNING OF THE LIST
 '''
-def pinned_apps_first(apps_ok_to_user, user_id):
+def pinned_apps_first(apps_ok_to_user, user_id, user_pinned_apps):
 
-	user_pinned_apps = UserPinnedApps.objects.filter(user_id=user_id)
 	pinned_apps = []
 
 	'''
