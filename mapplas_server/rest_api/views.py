@@ -1,3 +1,4 @@
+# -*- encoding: utf-8 -*-
 from django.http import HttpResponse
 from django.utils import timezone
 from django.views.decorators.csrf import csrf_exempt
@@ -93,6 +94,7 @@ def applications(request, multiple):
 		lat = data['lat']
 		lon = data['lon']
 		accuracy = data['p']
+		lang = data['l']
 
 		response = {}
 		appsArray = []
@@ -104,14 +106,13 @@ def applications(request, multiple):
 			'''
 			user_id = data['uid']
 			user = User.objects.get(pk=user_id)
-		
 			
 			apps = application_searcher.search(lat, lon, accuracy)
 			apps_ok_to_user = application_searcher.remove_user_blocked_apps(apps, user_id)
 			
 			userPinnedApps = UserPinnedApps.objects.filter(user_id=user_id)
 			apps_ok_to_user = application_searcher.pinned_apps_first(apps_ok_to_user, user_id, userPinnedApps)
-			
+
 			'''
 			If multiple = 0, get first 25 (0*25=0 -> from 0 to 25) apps
 			If multiple = 1, get next 25 (1*25=25 -> from 25 to 50) apps
@@ -129,6 +130,12 @@ def applications(request, multiple):
 				appsDict['n'] = app.app_name
 				appsDict['i'] = app.icon_url
 				appsDict['sc'] = app.url_schema
+				
+				'''
+				Get app description first 100 chars
+				'''
+				description = get_app_description(lang, app)
+				appsDict['sd'] = description
 				
 				'''
 				Check if app is pinned by user
@@ -470,6 +477,39 @@ def app_detail(request, app_id):
 			
 		except Application.DoesNotExist:
 			return response_generator.app_not_exist_error(app_id)
+
+def get_app_description(lang, app):
+	
+	try:
+		'''
+		Get Application detail for given language
+		'''
+		appDetail = AppDetails.objects.get(app_id=app.app_id_appstore, language_code=lang.upper())
+		return appDetail.description
+
+	except AppDetails.DoesNotExist:
+		'''
+		Application detail for given language does not exist
+		
+		Try with english version of app description
+		'''
+		try:
+			appDetail = AppDetails.objects.get(app_id=app.app_id_appstore, language_code='EN')
+			return appDetail.description
+			
+		except AppDetails.DoesNotExist:
+			'''
+			Try with spanish version of app description
+			'''
+			try:
+				appDetail = AppDetails.objects.get(app_id=app.app_id_appstore, language_code='ES')
+				return appDetail.description
+				
+			except AppDetails.DoesNotExist:
+				'''
+				Return application default description
+				'''
+				return app.app_description
 
 
 def serializeAppDetail(app_detail):
