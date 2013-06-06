@@ -49,9 +49,12 @@ SETS USER PINNED APPS AT THE BEGINNING OF THE LIST
 def pinned_apps_first(apps_ok_to_user, user_id):
 
 	user_pinned_apps = UserPinnedApps.objects.filter(user_id=user_id)
+	pinned_apps = []
 
 	'''
 	Remove pinned apps from apps list
+	Add that app to pinned apps to sent to user
+	Not sent other apps pinned by user that they are not going to be sent
 	'''
 	for pinned_app in user_pinned_apps:
 	
@@ -60,16 +63,8 @@ def pinned_apps_first(apps_ok_to_user, user_id):
 			if pinned_app.app_id == app.app_id_appstore:
 				
 				apps_ok_to_user.remove(app)
+				pinned_apps.append(Application.objects.get(pk=pinned_app.app_id))
 				
-	'''
-	Convert UserPinnedApps object list to app list
-	'''
-	pinned_apps = []
-	
-	for pinned_app in user_pinned_apps:
-	
-		pinned_apps.append(Application.objects.get(pk=pinned_app.app_id))
-		
 	'''
 	Add two lists, pinned apps before; and return
 	'''
