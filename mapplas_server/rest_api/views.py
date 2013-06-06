@@ -104,17 +104,7 @@ def applications(request, multiple):
 			'''
 			user_id = data['uid']
 			user = User.objects.get(pk=user_id)
-						
-			'''
-			Get UserPinnedApps
-			'''
-			try:
-				userPinnedApps = UserPinnedApps.objects.all().filter(user_id=user_id)
-				
-			except UserPinnedApps.DoesNotExist:
-				'''
-				Do nothing
-				'''
+		
 			
 			apps = application_searcher.search(lat, lon, accuracy)
 			apps_ok_to_user = application_searcher.remove_user_blocked_apps(apps, user_id)
@@ -441,7 +431,7 @@ def app_detail(request, app_id):
 				'''
 				Get Application detail for given language
 				'''
-				appDetail = AppDetails.objects.get(app_id=app.app_id_appstore, language_code=lang)
+				appDetail = AppDetails.objects.get(app_id=app.app_id_appstore, language_code=lang.upper())
 				return response_generator.ok_with_message(serializeAppDetail(appDetail))
 				
 			except AppDetails.DoesNotExist:
