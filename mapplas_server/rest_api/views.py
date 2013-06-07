@@ -108,10 +108,11 @@ def applications(request, multiple):
 			user = User.objects.get(pk=user_id)
 			
 			apps = application_searcher.search(lat, lon, accuracy)
-			apps_ok_to_user = application_searcher.remove_user_blocked_apps(apps, user_id)
-			
+
+			apps_without_blocked = application_searcher.remove_user_blocked_apps(apps, user_id)
+
 			userPinnedApps = UserPinnedApps.objects.filter(user_id=user_id)
-			apps_ok_to_user = application_searcher.pinned_apps_first(apps_ok_to_user, user_id, userPinnedApps)
+			apps_ok_to_user = application_searcher.pinned_apps_first(apps_without_blocked, user_id, userPinnedApps)
 
 			'''
 			If multiple = 0, get first 25 (0*25=0 -> from 0 to 25) apps
