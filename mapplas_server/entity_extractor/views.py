@@ -7,7 +7,7 @@ from entity_extractor.models import Entities
 
 from spain_multipolygons.models import SpainRegions
 
-from rest_api.models import Application, Storefront, AppPrice, Geometry, AppDetails
+from rest_api.models import Application, Storefront, AppPrice, Geometry, AppDetails, Polygon
 
 '''
 --> Manual <-- method of main method.
@@ -24,14 +24,19 @@ def find_geonames_in_apps_for_spain_regions_giving_region(region):
 Main method to create geometry objects for apps in regions.
 --> Automatic <--
 
-Entity types: R --> region, P --> Province, CC --> City/Capital of Province
+Entity types: R --> region, P --> Province, CC --> City/Capital of Province, PL --> Place
+
+When entity type is PL, only search in ES language
+
 '''
 def find_geonames_in_apps_for_entities(entity_type):
 
 	spain_region = Entities.objects.filter(region_type_id=entity_type)
-	
+		
 	for region in spain_region:
-	
+
+		#name = region.name1.replace('_', ' ')
+
 		print(region.name1)
 		print('************')
 	
@@ -40,15 +45,19 @@ def find_geonames_in_apps_for_entities(entity_type):
 		
 		check_apps(app_details_with_regex, region, entity_type)
 		
+		
 		if region.name2:
+		
+			#name2 = region.name2.replace('_', ' ')
+			
 			print(region.name2)
 			print('************')
 			
 			regex = r'^.*(%s).*$' % region.name2
-			app_details_with_regex_translated = AppDetails.objects.filter(language_code=region.lang_code, description__iregex=regex)
+			app_details_with_regex_translated = AppDetails.objects.filter(language_code=region.lang_code2, description__iregex=regex)
 			
 			check_apps(app_details_with_regex_translated, region, entity_type)
-			
+		
 
 '''
 Check if apps exist for given region in storefront.
@@ -63,59 +72,37 @@ def check_apps(app_details_for_region, region, entity_type):
 		try:
 			app_price = AppPrice.objects.get(app_id=app.app_id, storefront_id=storefront_id)
 			
+			geometry = Geometry()
+			
 			try:
-				geometry = Geometry.objects.get(app_id=app_id, storefront_id = storefront_id)
-			
-			except:
-				geometry = Geometry()
+				if Application.objects.get(pk=app.app_id):
 				
-				try:
-					if Application.objects.get(pk=app.app_id):
+					geometry.app_id = app.app_id
+					geometry.storefront_id = storefront_id
+					geometry.origin = entity_type
 					
-						geometry.app_id = app.app_id
-						geometry.storefront_id = storefront_id
-						
-				except Application.DoesNotExist:
-					print('Does not exist application for description')
-					continue
+			except Application.DoesNotExist:
+				print('Does not exist application for description')
+				continue
 				
-				
-			mpoly = get_multipolygon_for_spain(region, entity_type)
+			polygon = Polygon.objects.get(entity_id=region.id)
+
+			if polygon:
 			
-			if mpoly:
-				if geometry.polygon:
-					geometry.polygon = geometry.polygon.union(mpoly)		# Union!!!
-				else:
-					geometry.polygon = mpoly
+				geometry.polygon_id = polygon.id	
 				geometry.save()
+				
 				print('App ' + app.title)
 				#file_to_write.write('App ' + app.title.encode('utf-8'))
 			else:
-				print('null polygon for region ' + region)
+				print('null polygon for region ' + region.name1)
 				#file_to_write.write('null polygon for region ' + region.encode('utf-8'))
 		
 		except AppPrice.DoesNotExist:
 			# App does not exist for that storefront. Do nothing.
 			print('App ' + app.title + ' does not exist in that storefront')
 			#file_to_write.write('App ' + app.title.encode('utf-8') + ' does not exist in that storefront')
-			
-			
-'''
-Returns multipolygon for given region
-'''
-def get_multipolygon_for_spain(region, entity_type):
 	
-	try:
-		region = Entities.objects.get(name1=region, region_type=entity_type)
-	
-	except Entities.DoesNotExist:
-		try:
-			region = Entities.objects.get(name2=region, region_type=entity_type)
-		
-		except Entities.DoesNotExist:
-			return null
-		
-	return region.mpoly
 		
 '''
 Giving a region, returns the storefront id for it.
@@ -124,7 +111,7 @@ Only Spanish regions saved.
 def get_storefront_id(region, entity_type):
 	
 	try:
-		if(Entities.objects.get(name1=region, region_type=entity_type) or Entities.objects.get(name2=region, region_type=entity_type)):
+		if(Entities.objects.get(name1=region.name1, region_type=entity_type) or Entities.objects.get(name2=region.name2, region_type=entity_type)):
 			return 143454		#Storefront ESP - Spain
 	except Entities.DoesNotExist:
 		return 143441			#Storefront USA - United States of America

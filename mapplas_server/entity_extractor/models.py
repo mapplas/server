@@ -1,5 +1,13 @@
 from django.contrib.gis.db import models
-from rest_api.models import BigIntegerField
+from django.db.models.fields import IntegerField
+
+
+class BigIntegerField(IntegerField):
+    empty_strings_allowed = False
+    def get_internal_type(self):
+        return "BigIntegerField"	
+    def db_type(self, connection):
+        return 'bigint' # Note this won't work with Oracle.
 
 class geonames_all_countries(models.Model):
 	identifier = models.IntegerField(primary_key=True)
@@ -56,7 +64,10 @@ class Entities(models.Model):
 	parent = models.IntegerField(null=True)
 	region_type = models.ForeignKey(EntityTypes, on_delete=models.CASCADE, null=True)
 	
+	# lang_code goes with name1
+	# lang_code2 goes with name2
 	lang_code = models.CharField(max_length=10, null=True)
+	lang_code2 = models.CharField(max_length=10, null=True)
 	
 	mpoly = models.MultiPolygonField(null=True)
 		

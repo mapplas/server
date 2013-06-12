@@ -136,7 +136,7 @@ def applications(request, multiple):
 				Get app description first 100 chars
 				'''
 				description = get_app_description(lang, app)
-				appsDict['sd'] = description
+				appsDict['sd'] = description[:100]
 				
 				'''
 				Check if app is pinned by user

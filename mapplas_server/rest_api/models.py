@@ -3,6 +3,8 @@ from django.contrib.gis.db import models
 from django.db.models.fields import IntegerField
 from django.conf import settings
 
+from entity_extractor.models import Entities
+
 
 class BigIntegerField(IntegerField):
     empty_strings_allowed = False
@@ -160,12 +162,25 @@ class Storefront(models.Model):
         return self.name
 
 
+class Polygon(models.Model):
+	#polygon_id
+	polygon = models.MultiPolygonField(null=True)
+	entity = models.ForeignKey(Entities, on_delete=models.CASCADE)
+	origin = models.CharField(max_length=10, null=True)
+	name = models.CharField(max_length=1000, null=True)
+	
+	objects = models.GeoManager()
+	
+	def __str__(self):
+		return self.name + ' - ' + self.origin
+
+
 class Geometry(models.Model):
     app = models.ForeignKey(Application, on_delete=models.CASCADE)
     storefront = models.ForeignKey(Storefront, on_delete=models.CASCADE)
-    polygon = models.MultiPolygonField()
-    polygon_developer = models.MultiPolygonField(null=True)
-
+    polygon = models.ForeignKey(Polygon, on_delete=models.CASCADE)
+    origin = models.CharField(max_length=10, null=True)
+    
     objects = models.GeoManager()
 
     def __str__(self):

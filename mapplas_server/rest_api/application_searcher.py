@@ -1,6 +1,6 @@
 # -*- encoding: utf-8 -*-
 
-from rest_api.models import Application, Geometry, UserBlockedApps, UserPinnedApps
+from rest_api.models import Application, Geometry, UserBlockedApps, UserPinnedApps, Polygon
 
 from django.contrib.gis.geos import Point
 
@@ -10,14 +10,19 @@ SEARCHES APPS FOR THAT LATITUDE AND LONGITUDE
 def search(lat, lon, accuracy):
 	
 	point = Point(float(lon), float(lat))
+	#area = point.buffer(accuracy)
 	
-	geom_intersecting_point = Geometry.objects.filter(polygon__intersects=point)
+	# Get polygons insersecting given area
+	polygon_intersecting_points_ids = Polygon.objects.filter(polygon__intersects=point).values_list('id', flat=True)
+	
+	
 	apps = []
+
+	for polygon_id in polygon_intersecting_points_ids:
 	
-	for geom in geom_intersecting_point:
-		
-		app = Application.objects.get(app_id_appstore=geom.app.app_id_appstore)
-		apps.append(app)
+		for geom in Geometry.objects.filter(polygon_id=polygon_id):
+			
+			apps.append(Application.objects.get(app_id_appstore=geom.app.app_id_appstore))
 		
 	# Remove duplicated apps
 	apps_without_duplicates = list(set(apps))
