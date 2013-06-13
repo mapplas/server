@@ -148,7 +148,7 @@ class AppDetails(models.Model):
 		
 		
 	def __str__(self):
-		return self.app_id + " - (" + self.language_code + ") " + self.title 
+		return " - (" + self.language_code + ") " + self.title 
 
 
 class Storefront(models.Model):
