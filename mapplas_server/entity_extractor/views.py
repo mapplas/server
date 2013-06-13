@@ -4,6 +4,7 @@ import spain_multipolygons
 
 from entity_extractor.models import geonames_all_countries
 from entity_extractor.models import Entities
+from entity_extractor import regex
 
 from spain_multipolygons.models import SpainRegions
 
@@ -30,9 +31,10 @@ When entity type is PL, only search in ES language
 
 '''
 def find_geonames_in_apps_for_entities(entity_type):
-
+	
 	spain_region = Entities.objects.filter(region_type_id=entity_type)
-		
+	spain_region = spain_region[50:60]
+			
 	for region in spain_region:
 
 		#name = region.name1.replace('_', ' ')
@@ -40,10 +42,14 @@ def find_geonames_in_apps_for_entities(entity_type):
 		print(region.name1)
 		print('************')
 	
+		#Finds exact match of string
 		regex = r'^.*(%s).*$' % region.name1
-		app_details_with_regex = AppDetails.objects.filter(language_code=region.lang_code, description__iregex=regex)
 		
-		check_apps(app_details_with_regex, region, entity_type)
+		app_details_with_regex_description = AppDetails.objects.filter(language_code=region.lang_code, description__iregex=regex)
+		app_details_with_regex_title = AppDetails.objects.filter(language_code=region.lang_code, title__iregex=regex)
+		
+		check_apps(app_details_with_regex_description, region, entity_type)
+		check_apps(app_details_with_regex_title, region, entity_type)
 		
 		
 		if region.name2:
@@ -54,11 +60,21 @@ def find_geonames_in_apps_for_entities(entity_type):
 			print('************')
 			
 			regex = r'^.*(%s).*$' % region.name2
-			app_details_with_regex_translated = AppDetails.objects.filter(language_code=region.lang_code2, description__iregex=regex)
+			app_details_with_regex_translated_description = AppDetails.objects.filter(language_code=region.lang_code2,description__iregex=regex)
+			app_details_with_regex_translated_title = AppDetails.objects.filter(language_code=region.lang_code2, title__iregex=regex)
 			
-			check_apps(app_details_with_regex_translated, region, entity_type)
+			check_apps(app_details_with_regex_translated_description, region, entity_type)
+			check_apps(app_details_with_regex_translated_title, region, entity_type)
 		
-
+		
+def check_app_detail_description(app_detail_description):
+	
+	if 'spanish' == regex.get_language(app_detail_description[:300]):
+		return True		
+	else:
+		return False
+	
+	
 '''
 Check if apps exist for given region in storefront.
 If yes, created a geometry for that app in given region.
@@ -68,42 +84,44 @@ def check_apps(app_details_for_region, region, entity_type):
 	storefront_id = get_storefront_id(region, entity_type)
 
 	for app in app_details_for_region:
-		
-		try:
-			app_price = AppPrice.objects.get(app_id=app.app_id, storefront_id=storefront_id)
-			
-			geometry = Geometry()
-			
-			try:
-				if Application.objects.get(pk=app.app_id):
-				
-					geometry.app_id = app.app_id
-					geometry.storefront_id = storefront_id
-					geometry.origin = entity_type
-					
-			except Application.DoesNotExist:
-				print('Does not exist application for description')
-				continue
-				
-			polygon = Polygon.objects.get(entity_id=region.id)
-
-			if polygon:
-			
-				geometry.polygon_id = polygon.id	
-				geometry.save()
-				
-				print('App ' + app.title)
-				#file_to_write.write('App ' + app.title.encode('utf-8'))
-			else:
-				print('null polygon for region ' + region.name1)
-				#file_to_write.write('null polygon for region ' + region.encode('utf-8'))
-		
-		except AppPrice.DoesNotExist:
-			# App does not exist for that storefront. Do nothing.
-			print('App ' + app.title + ' does not exist in that storefront')
-			#file_to_write.write('App ' + app.title.encode('utf-8') + ' does not exist in that storefront')
 	
+		if check_app_detail_description(app.description):
 		
+			try:
+				app_price = AppPrice.objects.get(app_id=app.app_id, storefront_id=storefront_id)
+				
+				geometry = Geometry()
+				
+				try:
+					if Application.objects.get(pk=app.app_id):
+					
+						geometry.app_id = app.app_id
+						geometry.storefront_id = storefront_id
+						geometry.origin = entity_type
+						
+				except Application.DoesNotExist:
+					print('Does not exist application for description')
+					continue
+					
+				polygon = Polygon.objects.get(entity_id=region.id)
+	
+				if polygon:
+				
+					geometry.polygon_id = polygon.id	
+					geometry.save()
+					
+					print('App ' + app.title)
+					#file_to_write.write('App ' + app.title.encode('utf-8'))
+				else:
+					print('null polygon for region ' + region.name1)
+					#file_to_write.write('null polygon for region ' + region.encode('utf-8'))
+			
+			except AppPrice.DoesNotExist:
+				# App does not exist for that storefront. Do nothing.
+				print('App ' + app.title + ' does not exist in that storefront')
+				#file_to_write.write('App ' + app.title.encode('utf-8') + ' does not exist in that storefront')
+	
+	
 '''
 Giving a region, returns the storefront id for it.
 Only Spanish regions saved.

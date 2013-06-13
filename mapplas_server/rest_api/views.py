@@ -110,23 +110,28 @@ def applications(request, multiple):
 			apps = application_searcher.search(lat, lon, accuracy)
 
 			apps_without_blocked = application_searcher.remove_user_blocked_apps(apps, user_id)
-
-			userPinnedApps = UserPinnedApps.objects.filter(user_id=user_id)
-			apps_ok_to_user = application_searcher.pinned_apps_first(apps_without_blocked, user_id, userPinnedApps)
-
+			
+			apps_ok_to_user = application_searcher.pinned_apps_first(apps_without_blocked, user_id)
+			
+			
 			'''
 			If multiple = 0, get first 25 (0*25=0 -> from 0 to 25) apps
 			If multiple = 1, get next 25 (1*25=25 -> from 25 to 50) apps
 			'''
 			from_app = int(int(multiple) * int(AppListSize.SIZE_OF_LIST))
 			to_app = int(from_app + int(AppListSize.SIZE_OF_LIST))
-				
-			if (to_app - 1 > len(apps_ok_to_user)):		
-				to_app = len(apps_ok_to_user)
 			
-			apps = apps_ok_to_user[from_app:to_app] 
+			apps_ok_to_user_length = len(apps_ok_to_user)
+			
+			if (to_app - 1 > apps_ok_to_user_length):
+				to_app = apps_ok_to_user_length
+				
+			apps = apps_ok_to_user[from_app:to_app]
+			
+			userPinnedApps = UserPinnedApps.objects.filter(user_id=user_id)
 			
 			for app in apps:
+			
 				appsDict['id'] = app.app_id_appstore
 				appsDict['n'] = app.app_name
 				appsDict['i'] = app.icon_url
@@ -142,6 +147,7 @@ def applications(request, multiple):
 				Check if app is pinned by user
 				'''
 				try:
+
 					appIsPinned = userPinnedApps.get(app_id=app.app_id_appstore)
 					appsDict['pin'] = 1
 
@@ -191,7 +197,7 @@ def applications(request, multiple):
 			response['apps'] = appsArray
 			
 			# Check if user can request for more apps
-			if (to_app == len(apps_ok_to_user)):
+			if (to_app == apps_ok_to_user_length):
 				response['last'] = 1
 			else:
 				response['last'] = 0
