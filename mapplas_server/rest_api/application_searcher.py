@@ -1,6 +1,6 @@
 # -*- encoding: utf-8 -*-
 
-from rest_api.models import Application, Geometry, UserBlockedApps, UserPinnedApps, Polygon
+from rest_api.models import Application, Geometry, UserBlockedApps, UserPinnedApps, Polygon, AppDeviceType
 
 from django.contrib.gis.geos import Point
 
@@ -19,7 +19,13 @@ def search(lat, lon, accuracy):
 	geometries_apps = Geometry.objects.filter(polygon_id__in=polygon_intersecting_points_ids).values_list('app_id', flat=True)
 
 	# Get apps for that geometries	
-	return Application.objects.filter(pk__in=geometries_apps)
+	apps_ids = Application.objects.filter(pk__in=geometries_apps).values_list('app_id_appstore', flat=True) 
+	
+	# Get only apps compatible with iPhone and iPod
+	iphone_ipod_device_ids = [1, 2, 3, 4, 5, 6, 9, 10, 11, 15, 18, 19]
+	iphone_ipod_apps = AppDeviceType.objects.filter(device_type_id__in=iphone_ipod_device_ids, app_id__in=apps_ids).values_list('app_id', flat=True)
+	
+	return Application.objects.filter(pk__in=iphone_ipod_apps)
 
 
 '''

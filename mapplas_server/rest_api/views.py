@@ -120,10 +120,10 @@ def applications(request, multiple):
 			'''
 			from_app = int(int(multiple) * int(AppListSize.SIZE_OF_LIST))
 			to_app = int(from_app + int(AppListSize.SIZE_OF_LIST))
-			
+
 			apps_ok_to_user_length = len(apps_ok_to_user)
-			
-			if (to_app - 1 > apps_ok_to_user_length):
+
+			if (to_app - 1 >= apps_ok_to_user_length):
 				to_app = apps_ok_to_user_length
 				
 			apps = apps_ok_to_user[from_app:to_app]
