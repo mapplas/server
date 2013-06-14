@@ -33,7 +33,6 @@ When entity type is PL, only search in ES language
 def find_geonames_in_apps_for_entities(entity_type):
 	
 	spain_region = Entities.objects.filter(region_type_id=entity_type)
-	spain_region = spain_region[50:60]
 			
 	for region in spain_region:
 

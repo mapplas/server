@@ -45,7 +45,3 @@ def get_mpoly_for_entity(entity_name):
 
 
 	return MultiPolygon(poligons)
-	    
-	    
-#	    from entity_extractor import places_csv
-#	    places_csv.insert_mpolys_from_entity_names()
