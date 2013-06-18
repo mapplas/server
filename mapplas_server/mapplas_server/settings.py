@@ -1,6 +1,7 @@
 # Django settings for mapplas_server project.
 # -*- coding: utf8 -*-
-import os.path
+import djcelery
+import urllib
 
 DEBUG = True
 TEMPLATE_DEBUG = DEBUG
@@ -20,10 +21,21 @@ DATABASES = {
 
         'USER': 'postgres',
         'PASSWORD': 'admin',
-        'HOST': '10.248.21.154',   						# Empty for localhost through domain sockets or '127.0.0.1' for localhost through TCP.
+        'HOST': '10.248.146.205',   						# Empty for localhost through domain sockets or '127.0.0.1' for localhost through TCP.
         'PORT': '',                                     # Set to empty string for default.
     }
 }
+
+# DJCELERY
+djcelery.setup_loader()
+
+AWS_ACCESS_KEY_ID = 'AKIAIGAL7KYMY3XR7WGA'
+AWS_SECRET_ACCESS_KEY = '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'
+
+BROKER_URL = 'sqs://%s:%s@' % (urllib.quote(AWS_ACCESS_KEY_ID, safe=''),
+                               urllib.quote(AWS_SECRET_ACCESS_KEY, safe=''))
+BROKER_TRANSPORT_OPTIONS = {'region': 'eu-west-1b'}
+
 
 # Hosts/domain names that are valid for this site; required if DEBUG is False
 # See https://docs.djangoproject.com/en/1.5/ref/settings/#allowed-hosts
@@ -140,6 +152,7 @@ INSTALLED_APPS = (
     'rest_api',
     'spain_multipolygons',
     'entity_extractor',
+    'djcelery',
 )
 
 # A sample logging configuration. The only tangible logging
