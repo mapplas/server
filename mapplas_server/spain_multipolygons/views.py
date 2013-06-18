@@ -69,9 +69,9 @@ def generate_multipolygons_for_regions():
 	regions = SpainRegions.objects.order_by('province').distinct('province')
 	
 	for region in regions:
-		print(region.province)
 		
 		if region.province != 'mpoly_error':
+			print(region.province)
 			
 			province_poly = SpainRegions.objects.filter(province=region.province).aggregate(area=Union('mpoly'))['area']
 			
@@ -120,4 +120,22 @@ def generate_multipolygons_for_comunities():
 			
 		else:
 			print('NO ' + comunity.name1)
-					
+			
+'''
+id=200 is Spain
+'''
+def generate_multipolygon_for_state():
+	
+	spain = Entities.objects.get('name1').filter(parent=200)
+	
+	for comunity in comunities:
+		
+		if comunity.mpoly:		
+			print(comunity.name1)
+			mpoly = Entities.objects.filter(parent=200).aggregate(area=Union('mpoly'))['area']
+			
+			spain = Entities.objects.get(pk=200)
+			spain.mpoly = mpoly
+			spain.save()
+		else:
+			print('NO ' + comunity.name1)

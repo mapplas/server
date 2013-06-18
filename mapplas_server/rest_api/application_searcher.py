@@ -49,5 +49,8 @@ def pinned_apps_first(apps_ok_to_user, user_id):
 	
 	apps_without_pinned = apps_ok_to_user.exclude(pk__in=user_pinned_apps_ids)
 	
+	# Intersection betweeen pinned and apps_ok_to_user gives user pinned apps ready to be sent, no other from other locations
+	apps_pinned_intersection = set(user_pinned_apps).intersection(set(apps_ok_to_user))
+	
 	# Remove duplicated apps
-	return list(user_pinned_apps) + list(set(apps_without_pinned))
+	return list(apps_pinned_intersection) + list(apps_without_pinned)

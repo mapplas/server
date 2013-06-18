@@ -1,4 +1,7 @@
 import os, sys
+import djcelery
+
+djcelery.setup_loader()
 
 sys.path.append('/home/ubuntu/server/mapplas_server/')
 sys.path.append('/home/ubuntu/server/')

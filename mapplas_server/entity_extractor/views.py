@@ -33,7 +33,7 @@ When entity type is PL, only search in ES language
 def find_geonames_in_apps_for_entities(entity_type):
 	
 	spain_region = Entities.objects.filter(region_type_id=entity_type)
-	spain_region = spain_region[50:60]
+	spain_region = spain_region[26:52]
 			
 	for region in spain_region:
 
@@ -181,3 +181,19 @@ def set_province_column_to(province_to_set, country_to_search):
 			if (city.mpoly.contains(point_place)):
 				place.province = province_to_set
 				place.save()
+				
+
+def generate_polygons(entity_type):
+
+	entities = Entities.objects.filter(region_type_id=entity_type)
+	
+	for entity in entities:
+	
+		poly = Polygon()
+		
+		poly.polygon = entity.mpoly
+		poly.entity = entity
+		poly.origin = entity_type
+		poly.name = entity.name1
+		
+		poly.save()
