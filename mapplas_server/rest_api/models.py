@@ -302,3 +302,33 @@ class Review(models.Model):
 
     def __str__(self):
         return self.app.app_name + ' - ' + self.language + ' - ' + self.rating
+
+
+class MapplasCathegories(models.Model):
+	id = models.IntegerField(primary_key=True)
+	name = models.CharField(max_length=200)
+	
+	objects = models.GeoManager()
+	
+	def __str__(self):
+		return self.name
+		
+		
+class CathegoryRelationMatrix(models.Model):
+	genre = models.ForeignKey(Genre, on_delete=models.CASCADE)
+	mapplas_cathegories = models.ForeignKey(MapplasCathegories, on_delete=models.CASCADE)
+	
+	objects = models.GeoManager()
+	
+	def __str__(self):
+		return genre_id.name + ' - ' + mapplasCathegories_id.name
+		
+	
+class ChainCathegory(models.Model):
+	entity = models.ForeignKey(Entities, on_delete=models.CASCADE)
+	mapplas_cathegories = models.ForeignKey(MapplasCathegories, on_delete=models.CASCADE)
+	
+	objects = models.GeoManager()
+	
+	def __str__(self):
+		return entity.name + ' - ' + mapplasCathegories_id.name

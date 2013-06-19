@@ -1,6 +1,6 @@
 # -*- encoding: utf-8 -*-
 
-from django.contrib.gis.geos import Point, GEOSGeometry
+from django.contrib.gis.geos import Point, GEOSGeometry, MultiPolygon
 from django.contrib.gis.db import models
 
 from django.core.files import File
@@ -100,7 +100,7 @@ Generates a Multipolygon for spain authonomic comunities, from province multipol
 '''
 def generate_multipolygons_for_comunities():
 	
-	comunities = Entities.objects.order_by('name1').filter(parent=0)
+	comunities = Entities.objects.order_by('name1').filter(parent=1)
 	
 	for comunity in comunities:
 	
@@ -125,17 +125,31 @@ def generate_multipolygons_for_comunities():
 id=200 is Spain
 '''
 def generate_multipolygon_for_state():
+
+	spain_id = 1
 	
-	spain = Entities.objects.get('name1').filter(parent=200)
+	mpoly = Entities.objects.filter(parent=spain_id).aggregate(area=Union('mpoly'))['area']
 	
-	for comunity in comunities:
+	spain = Entities.objects.get(pk=spain_id)
+	spain.mpoly = mpoly
+	spain.save()
+	
+	
+'''
+Set CC polygons from spain regions
+'''
+def copy_spain_cities():
+
+	province_capitals = Entities.objects.filter(region_type='CC')
+	
+	for capital in province_capitals:
 		
-		if comunity.mpoly:		
-			print(comunity.name1)
-			mpoly = Entities.objects.filter(parent=200).aggregate(area=Union('mpoly'))['area']
+		try:
+			spain_region = SpainRegions.objects.get(name=capital.name1)
+			capital.mpoly = spain_region.mpoly
+			capital.save()
+			print('OK ' + capital.name1)
 			
-			spain = Entities.objects.get(pk=200)
-			spain.mpoly = mpoly
-			spain.save()
-		else:
-			print('NO ' + comunity.name1)
+		except SpainRegions.DoesNotExist:
+			print('does not exist ' + capital.name1)
+
