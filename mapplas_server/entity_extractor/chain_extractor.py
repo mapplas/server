@@ -31,7 +31,7 @@ def find_chains_in_apps():
 		# Exceptions
 		chains_with_description_only_in_english = ["H&M", "Domino's Pizza", "Calzedonia", "Promod"]
 		
-		if(name_to_search=="TOYS'R'US"):
+		if(name_to_search == "Toys'R'Us"):
 			name_to_search = 'TOYS"R"US'
 
 		# Print info
