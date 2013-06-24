@@ -4,7 +4,7 @@ import spain_multipolygons
 
 from entity_extractor.models import geonames_all_countries
 from entity_extractor.models import Entities
-from entity_extractor import regex
+from entity_extractor import lang_detector
 
 from spain_multipolygons.models import SpainRegions
 
@@ -25,7 +25,10 @@ def find_geonames_in_apps_for_spain_regions_giving_region(region):
 Main method to create geometry objects for apps in regions.
 --> Automatic <--
 
-Entity types: R --> region, P --> Province, CC --> City/Capital of Province, PL --> Place
+P --> Province, CC --> City/Capital of Province -- Search in name and description
+S --> State -- Only searched in name
+R --> region -- Only searched in name
+PL --> Place, 
 
 When entity type is PL, only search in ES language
 
@@ -34,7 +37,6 @@ def find_geonames_in_apps_for_entities(entity_type):
 	
 	spain_region = Entities.objects.filter(region_type_id=entity_type)
 	spain_region = spain_region[26:52]
-			
 	for region in spain_region:
 
 		#name = region.name1.replace('_', ' ')
@@ -43,13 +45,13 @@ def find_geonames_in_apps_for_entities(entity_type):
 		print('************')
 	
 		#Finds exact match of string
-		regex = r'^.*(%s).*$' % region.name1
+		regex = r'^.*(\m%s\M).*$' % region.name1
 		
-		app_details_with_regex_description = AppDetails.objects.filter(language_code=region.lang_code, description__iregex=regex)
-		app_details_with_regex_title = AppDetails.objects.filter(language_code=region.lang_code, title__iregex=regex)
+		app_details_with_regex_description = AppDetails.objects.filter(description__iregex=regex)
+		#app_details_with_regex_title = AppDetails.objects.filter(title__iregex=regex)
 		
 		check_apps(app_details_with_regex_description, region, entity_type)
-		check_apps(app_details_with_regex_title, region, entity_type)
+		#check_apps(app_details_with_regex_title, region, entity_type)
 		
 		
 		if region.name2:
@@ -59,17 +61,17 @@ def find_geonames_in_apps_for_entities(entity_type):
 			print(region.name2)
 			print('************')
 			
-			regex = r'^.*(%s).*$' % region.name2
-			app_details_with_regex_translated_description = AppDetails.objects.filter(language_code=region.lang_code2,description__iregex=regex)
-			app_details_with_regex_translated_title = AppDetails.objects.filter(language_code=region.lang_code2, title__iregex=regex)
+			regex = r'^.*(\m%s\M).*$' % region.name2
+			app_details_with_regex_translated_description = AppDetails.objects.filter(description__iregex=regex)
+			#app_details_with_regex_translated_title = AppDetails.objects.filter(title__iregex=regex)
 			
 			check_apps(app_details_with_regex_translated_description, region, entity_type)
-			check_apps(app_details_with_regex_translated_title, region, entity_type)
+			#check_apps(app_details_with_regex_translated_title, region, entity_type)
 		
 		
 def check_app_detail_description(app_detail_description):
 	
-	if 'spanish' == regex.get_language(app_detail_description[:300]):
+	if 'spanish' == lang_detector.get_language(app_detail_description[:200]):
 		return True		
 	else:
 		return False
