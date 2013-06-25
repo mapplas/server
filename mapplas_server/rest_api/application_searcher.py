@@ -57,6 +57,8 @@ def pinned_apps_first(apps_ok_to_user, user_id, ranking_dict):
 	apps_without_pinned = apps_ok_to_user.exclude(pk__in=user_pinned_apps_ids)
 	
 	# Order user not pinned apps
+	ch_apps = []
+	
 	cc_apps = []
 	p_apps = []
 	r_apps = []
@@ -71,7 +73,11 @@ def pinned_apps_first(apps_ok_to_user, user_id, ranking_dict):
 			r_apps.append(app)
 		elif entity_type == 'P':
 			p_apps.append(app)
-		else:
+		elif entity_type == 'CC':
 			cc_apps.append(app)
+		elif entity_type == 'CH':
+			ch_apps.append(app)
+		else:
+			continue
 			
-	return list(user_pinned_apps) + cc_apps + p_apps + r_apps + s_apps
+	return list(user_pinned_apps) + ch_apps + cc_apps + p_apps + r_apps + s_apps
