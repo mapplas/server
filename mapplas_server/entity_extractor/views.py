@@ -16,8 +16,11 @@ from entity_extractor import extractor_helper
 CC --> City/Capital of Province -- Search in name and description -- City max match
 '''
 def find_geonames_in_apps_for_capital_cities():
+	
 	entity_type = 'CC'
+	
 	cities = Entities.objects.filter(region_type_id=entity_type)
+	cities = cities[0:26]
 	
 	for city in cities:
 
@@ -29,10 +32,7 @@ def find_geonames_in_apps_for_capital_cities():
 		
 		app_details_with_regex_title = AppDetails.objects.filter(title__iregex=regex)
 		app_details_with_regex_description = AppDetails.objects.filter(description__iregex=regex)
-		
-		extractor_helper.check_apps(app_details_with_regex_title, city, entity_type)
-		extractor_helper.check_apps(app_details_with_regex_description, city, entity_type)
-		
+		extractor_helper.check_apps_for_city_match(app_details_with_regex_title, app_details_with_regex_description, city, entity_type)		
 		
 		if city.name2:
 					
@@ -42,16 +42,15 @@ def find_geonames_in_apps_for_capital_cities():
 			regex = r'^.*(\m%s\M).*$' % city.name2
 			
 			app_details_with_regex_translated_title = AppDetails.objects.filter(title__iregex=regex)
-			app_details_with_regex_translated_description = AppDetails.objects.filter(description__iregex=regex)
-			
-			extractor_helper.check_apps(app_details_with_regex_translated_title, city, entity_type)
-			extractor_helper.check_apps(app_details_with_regex_translated_description, city, entity_type)
+			app_details_with_regex_translated_description = AppDetails.objects.filter(description__iregex=regex)			
+			extractor_helper.check_apps_for_city_match(app_details_with_regex_translated_title, app_details_with_regex_translated_description, city, entity_type)
 
 
 '''
 P --> Province -- Search in name and description
 '''
 def find_geonames_in_apps_for_province():
+	
 	entity_type = 'P'
 	provinces = Entities.objects.filter(region_type_id=entity_type)
 	
