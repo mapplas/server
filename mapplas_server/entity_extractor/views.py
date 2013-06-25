@@ -22,6 +22,13 @@ def find_geonames_in_apps_for_capital_cities():
 	cities = Entities.objects.filter(region_type_id=entity_type)
 	cities = cities[0:26]
 	
+	# Get cities gazetteer
+	cities_file = open('/home/ubuntu/temp/cities/cities.txt', 'r')
+	lines = [line.strip().lower() for line in cities_file]
+	cities_file.close()
+	
+	subs = re.compile("|".join(lines))
+	
 	for city in cities:
 
 		print(city.name1)
@@ -32,7 +39,7 @@ def find_geonames_in_apps_for_capital_cities():
 		
 		app_details_with_regex_title = AppDetails.objects.filter(title__iregex=regex)
 		app_details_with_regex_description = AppDetails.objects.filter(description__iregex=regex)
-		extractor_helper.check_apps_for_city_match(app_details_with_regex_title, app_details_with_regex_description, city, entity_type)		
+		extractor_helper.check_apps_for_city_match(app_details_with_regex_title, app_details_with_regex_description, city, entity_type, city.name1, subs)		
 		
 		if city.name2:
 					
@@ -43,7 +50,7 @@ def find_geonames_in_apps_for_capital_cities():
 			
 			app_details_with_regex_translated_title = AppDetails.objects.filter(title__iregex=regex)
 			app_details_with_regex_translated_description = AppDetails.objects.filter(description__iregex=regex)			
-			extractor_helper.check_apps_for_city_match(app_details_with_regex_translated_title, app_details_with_regex_translated_description, city, entity_type)
+			extractor_helper.check_apps_for_city_match(app_details_with_regex_translated_title, app_details_with_regex_translated_description, city, entity_type, city.name2, subs)
 
 
 '''
