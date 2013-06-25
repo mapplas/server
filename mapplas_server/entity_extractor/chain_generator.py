@@ -57,7 +57,7 @@ def extract_entities_from_csv_files():
 
 def get_name_from_file(filename):
 
-	csv_file = open('/home/ubuntu/temp/chains/%s' % filename)
+	csv_file = open("/home/ubuntu/temp/chains/%s" % filename, "rU")
 	csv_reader = csv.reader(csv_file , delimiter=',', quotechar='|')
 	
 	first = True
@@ -72,7 +72,7 @@ def get_name_from_file(filename):
 				
 def generate_mpoly_from_file(filename):
 
-	csv_file = open('/home/ubuntu/temp/chains/%s' % filename)
+	csv_file = open("/home/ubuntu/temp/chains/%s" % filename, "rU")
 	poligons = []
 
 	csv_reader = csv.reader(csv_file , delimiter=',', quotechar='|')
