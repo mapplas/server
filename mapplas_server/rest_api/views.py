@@ -254,6 +254,7 @@ def app_pin_unpin(request):
 						dataToSerialize['app'] = appId
 						dataToSerialize['lon'] = data['lon']
 						dataToSerialize['lat'] = data['lat']
+						dataToSerialize['address'] = u'%s' % data['a']
 						dataToSerialize['created'] = helper.epoch(timezone.now())
 						
 						serializer = UserPinnedAppSerializer(data=dataToSerialize)
@@ -555,7 +556,7 @@ def user_apps(request, user_id):
 			user = User.objects.get(pk=user_id)
 			
 			'''
-			Get pinned apps for user (id, name, logo, lat, lon)
+			Get pinned apps for user (id, name, logo, address)
 			'''
 			pinnedApps = UserPinnedApps.objects.all().filter(user_id=user_id)
 
@@ -567,6 +568,8 @@ def user_apps(request, user_id):
 				pinnedAppsResponse['id'] = pinnedApp.app.app_id_appstore
 				pinnedAppsResponse['n'] = pinnedApp.app.app_name
 				pinnedAppsResponse['i'] = pinnedApp.app.icon_url
+				pinnedAppsResponse['a'] = pinnedApp.address
+				
 				pinnedArray.append(pinnedAppsResponse.copy())
 				
 			response['pinned'] = pinnedArray

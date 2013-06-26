@@ -21,7 +21,7 @@ class UserPinnedAppSerializer(serializers.ModelSerializer):
 
 	class Meta:
 		model = UserPinnedApps
-		fields = ('id', 'user', 'app', 'lon', 'lat', 'created')
+		fields = ('id', 'user', 'app', 'lon', 'lat', 'created', 'address')
 
 
 class UserBlockedAppSerializer(serializers.ModelSerializer):

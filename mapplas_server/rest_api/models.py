@@ -89,6 +89,7 @@ class UserPinnedApps(models.Model):
     app = models.ForeignKey(Application, on_delete=models.CASCADE)
     lon = models.FloatField()
     lat = models.FloatField()
+    address = models.CharField(max_length=200, null=True)
     created = BigIntegerField()
 
     objects = models.GeoManager()
