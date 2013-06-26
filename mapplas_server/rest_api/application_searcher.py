@@ -54,7 +54,12 @@ def pinned_apps_first(apps_ok_to_user, user_id, ranking_dict):
 	user_pinned_apps_ids = UserPinnedApps.objects.filter(user_id=user_id).values_list('app_id', flat=True)
 	user_pinned_apps = Application.objects.filter(pk__in=user_pinned_apps_ids)
 	
+	# Apps that are not pinned
 	apps_without_pinned = apps_ok_to_user.exclude(pk__in=user_pinned_apps_ids)
+	
+	# Apps pinned in apps ok to user
+	pinned_apps_to_send = list(set(user_pinned_apps) & set(apps_ok_to_user))
+	
 	
 	# Order user not pinned apps
 	ch_apps = []
@@ -80,4 +85,4 @@ def pinned_apps_first(apps_ok_to_user, user_id, ranking_dict):
 		else:
 			continue
 			
-	return list(user_pinned_apps) + ch_apps + cc_apps + p_apps + r_apps + s_apps
+	return pinned_apps_to_send + ch_apps + cc_apps + p_apps + r_apps + s_apps

@@ -1,3 +1,5 @@
+# -*- encoding: utf-8 -*-
+
 import re
 from django.core.files import File
 
@@ -89,7 +91,7 @@ Check if apps exist for given region in storefront.
 If yes, check if from city gazetteers don't appear more than 3 different cities.
 If no, save it.
 '''
-def check_apps_for_city_match(app_titles_for_entity, app_details_for_entity, entity, entity_type):
+def check_apps_for_city_match(app_titles_for_entity, app_details_for_entity, entity, entity_type, name_to_search, subs):
 		
 	app_geometry_save_dict = {}
 	
@@ -97,13 +99,13 @@ def check_apps_for_city_match(app_titles_for_entity, app_details_for_entity, ent
 	app_geometry_save_dict = check_apps(app_titles_for_entity, entity, entity_type, app_geometry_save_dict)
 	
 	# Check app descriptions
-	check_city_apps(app_details_for_entity, entity, entity_type, app_geometry_save_dict)
+	check_city_apps(app_details_for_entity, entity, entity_type, app_geometry_save_dict, name_to_search, subs)
 
 
 '''
 Checks apps text.
 '''
-def check_city_apps(apps, entity, entity_type, app_geometry_save_dict):
+def check_city_apps(apps, entity, entity_type, app_geometry_save_dict, name_to_search, subs):
 
 	storefront_id = get_storefront_id(entity, entity_type)
 	
@@ -115,7 +117,7 @@ def check_city_apps(apps, entity, entity_type, app_geometry_save_dict):
 			if check_app_detail_description_is_spanish(app.description):
 			
 				# Checks if they are not more than x cities in description
-				if not check_more_than_x_cities(app.description):
+				if not check_more_than_x_cities(app.description, name_to_search, subs):
 			
 					try:
 						app_price = AppPrice.objects.get(app_id=app.app_id, storefront_id=storefront_id)
@@ -160,21 +162,19 @@ def check_city_apps(apps, entity, entity_type, app_geometry_save_dict):
 '''
 Checks if in description are more than max_cities_number cities.
 '''
-def check_more_than_x_cities(text):
+def check_more_than_x_cities(text, name_to_search, subs):
 	max_cities_number_in_description = 3
 	
 	matches = 0
 	
-	cities_file = open('/home/ubuntu/temp/cities/cities.txt', 'r')
-	lines = [line.strip() for line in cities_file]
-	cities_file.close()
-	
-	subs = re.compile("|".join(lines))
-	
 	# iterative result
-	for match in re.finditer(subs, text):
-		matches = matches + 1
+	for match in re.finditer(subs, text.lower()):
+
+		if match.group(0) != name_to_search.lower():
+			matches = matches + 1
+		
 		if matches > max_cities_number_in_description:
 			break
-	
+			
+		
 	return matches > max_cities_number_in_description

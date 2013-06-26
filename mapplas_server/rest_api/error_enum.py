@@ -3,4 +3,4 @@ class ErrorKeys(object):
 	INFO = 'info'
 	
 class AppListSize(object):
-	SIZE_OF_LIST = 8
+	SIZE_OF_LIST = 20
