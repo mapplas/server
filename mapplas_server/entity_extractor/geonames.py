@@ -46,29 +46,35 @@ def extract_geonames_and_save():
 			first = True
 			
 			for app_id in AppDetails.objects.filter(description__iregex=regex).distinct('app_id').values_list('app_id', flat=True):
-				print(Application.objects.get(pk=app_id).app_name)
+			
+				try:
+					print(Application.objects.get(pk=app_id).app_name)
 				
-				if first:
-				
-					# Create polygon with given point
-					polygon = Polygon()
-					polygon.mpoly = point.buffer(radius)
-					polygon.entity_id = geoname_entity.id
-					polygon.origin = 'GN'
-					polygon.name = name
-					polygon.save()
-					first = False
-					print('Created polygon for ' + name)
-				
-				# Create geometry that matches polygon & app
-				
-				geometry = Geometry()
-				geometry.app_id = app_id
-				geometry.storefront_id = spanish_storefront.storefront_id
-				geometry.polygon_id = polygon.id
-				geometry.origin = 'GN'
-				geometry.save()
-				print('Created geometry for ' + name)
+					if first:
+					
+						# Create polygon with given point
+						polygon = Polygon()
+						polygon.mpoly = point.buffer(radius)
+						polygon.entity_id = geoname_entity.id
+						polygon.origin = 'GN'
+						polygon.name = name
+						polygon.save()
+						first = False
+						print('Created polygon for ' + name)
+					
+					# Create geometry that matches polygon & app
+					
+					geometry = Geometry()
+					geometry.app_id = app_id
+					geometry.storefront_id = spanish_storefront.storefront_id
+					geometry.polygon_id = polygon.id
+					geometry.origin = 'GN'
+					geometry.save()
+					print('Created geometry for ' + name)
+					
+				except Application.DoesNotExist:
+					print('Application does not exist for AppDetails')
+					continue
 				
 		print('\n')
 	
