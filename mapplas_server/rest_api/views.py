@@ -95,6 +95,7 @@ def applications(request, multiple):
 		lon = data['lon']
 		accuracy = data['p']
 		lang = data['l']
+		is_retina = data['r']
 
 		response = {}
 		appsArray = []
@@ -432,6 +433,11 @@ def app_detail(request, app_id):
 		Get language
 		'''
 		lang = data['l']
+		
+		'''
+		Get if it is retina - True and False
+		'''
+		is_retina = data['r']
 		
 		'''
 		Get application
