@@ -8,8 +8,8 @@ from rest_framework.response import Response
 from rest_framework.decorators import api_view
 from rest_framework.renderers import JSONRenderer
 
-from rest_api.models import User, Application, UserPinnedApps, UserBlockedApps, UserSharedApps, AppDetails, AppDeviceType, DeviceType, AppPrice
-from rest_api.serializers import UserSerializer, ApplicationSerializer, UserPinnedAppSerializer, UserBlockedAppSerializer, UserSharedAppSerializer, AppDetailsSerializer, AppDeviceTypeSerializer
+from rest_api.models import User, Application, UserPinnedApps, UserBlockedApps, UserSharedApps, AppDetails, AppDeviceType, DeviceType, AppPrice, UserAppStoreInteraction
+from rest_api.serializers import UserSerializer, ApplicationSerializer, UserPinnedAppSerializer, UserBlockedAppSerializer, UserSharedAppSerializer, AppDetailsSerializer, AppDeviceTypeSerializer, UserAppStoreInteractionSerializer
 from rest_api.errors import ResponseGenerator
 
 from rest_api import helper, application_searcher
@@ -625,3 +625,46 @@ def installed_apps(request):
 			appsWithSchemeArray.append(appsWithScheme.copy())
 			
 		return response_generator.ok_with_message(appsWithSchemeArray)
+		
+
+@csrf_exempt
+@api_view(['POST'])
+def user_appstore_interaction(request):
+
+	if request.method == 'POST':
+		data = request.DATA
+		response_generator = ResponseGenerator()
+		
+		user_id = data['uid']
+		app_id = data['app']
+		latitude = data['lat']
+		longitude = data['lon']
+		
+		try:
+			user = User.objects.get(pk=user_id)
+			
+			try:
+				Application.objects.get(pk=app_id)
+				
+				# Insert data to db
+				dataToSave = {}
+				dataToSave['created'] = helper.epoch(timezone.now())
+				dataToSave['user'] = user_id
+				dataToSave['app'] = app_id
+				dataToSave['lat'] = latitude
+				dataToSave['lon'] = longitude
+					
+				serializer = UserAppStoreInteractionSerializer(data=dataToSave)
+			
+				if serializer.is_valid():
+					serializer.save()
+			
+			except Application.DoesNotExist:
+				'''
+				Do nothing
+				'''
+			
+		except User.DoesNotExist:
+			'''
+			Do nothing
+			'''

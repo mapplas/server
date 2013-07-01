@@ -24,4 +24,6 @@ urlpatterns = patterns('rest_api.views',
     url(r'^api/user-apps-info/(?P<user_id>\d+)/$', 'user_apps'),
     
     url(r'^api/installed-apps/$', 'installed_apps'),
+    
+    url(r'^api/user/app-interaction/$', 'user_appstore_interaction'),
 )
