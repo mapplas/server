@@ -333,3 +333,16 @@ class ChainCathegory(models.Model):
 	
 	def __str__(self):
 		return entity.name + ' - ' + mapplasCathegories_id.name
+		
+
+class UserAppStoreInteraction(models.Model):
+	user = models.ForeignKey(User, on_delete=models.CASCADE)
+	app = models.ForeignKey(Application, on_delete=models.CASCADE)
+	lon = models.FloatField()
+	lat = models.FloatField()
+	created = BigIntegerField()
+	
+	objects = models.GeoManager()
+	
+	def __str__(self):
+		return self.app.app_name + " - " + self.user.user_id
