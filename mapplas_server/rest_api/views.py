@@ -1,4 +1,6 @@
 # -*- encoding: utf-8 -*-
+import cgi
+
 from django.http import HttpResponse
 from django.utils import timezone
 from django.views.decorators.csrf import csrf_exempt
@@ -129,15 +131,19 @@ def applications(request, multiple):
 			for app in apps:
 			
 				appsDict['id'] = app.app_id_appstore
-				appsDict['n'] = app.app_name
+				appsDict['n'] = cgi.escape(app.app_name)
 				appsDict['i'] = app.icon_url
-				appsDict['sc'] = app.url_schema
 				
+				if(app.url_schema != None):
+					appsDict['sc'] = cgi.escape(app.url_schema)
+				else:
+					appsDict['sc'] = ''
+
 				'''
 				Get app description first 100 chars
 				'''
 				description = get_app_description(lang, app)
-				appsDict['sd'] = description[:100]
+				appsDict['sd'] = cgi.escape(description[:100])
 				
 				'''
 				Check if app is pinned by user
@@ -158,16 +164,6 @@ def applications(request, multiple):
 					
 				except UserPinnedApps.DoesNotExist:
 					appsDict['tpin'] = 0
-					
-				'''
-				Check app type. MUST exist for all apps
-				'''
-				#try:
-				#	appDeviceType = AppDeviceType.objects.get(app_id=app.app_id_appstore)
-				#	appsDict['type'] = appDeviceType.device_type.name
-				
-				#except AppDeviceType.DoesNotExist:
-				#	return ResponseGenerator.generic_error_param('App device type does not exist for app', app.app_id_appstore)
 					
 				'''
 				Check app price, storefront and currency code
@@ -429,6 +425,8 @@ def app_detail(request, app_id):
 		data = request.DATA
 		response_generator = ResponseGenerator()
 		
+		appDetailToReturn = {}
+		
 		'''
 		Get language
 		'''
@@ -474,10 +472,9 @@ def app_detail(request, app_id):
 						'''
 						Return application default description
 						'''
-						appDetailToReturn = {}
-						appDetailToReturn ['d'] = app.app_description
-						appDetailToReturn ['curl'] = app.company_url
-						appDetailToReturn ['surl'] = app.support_url
+						appDetailToReturn['d'] = cgi.escape(app.app_description)
+						appDetailToReturn['curl'] = app.company_url
+						appDetailToReturn['surl'] = app.support_url
 						
 						return response_generator.ok_with_message(appDetailToReturn)
 					
@@ -486,6 +483,7 @@ def app_detail(request, app_id):
 			
 		except Application.DoesNotExist:
 			return response_generator.app_not_exist_error(app_id)
+
 
 def get_app_description(lang, app):
 	
@@ -520,7 +518,9 @@ def get_app_description(lang, app):
 				'''
 				return app.app_description
 
-
+'''
+Manual app detail serialization
+'''
 def serializeAppDetail(app_detail):
 	
 	appDetailToReturn = {}
@@ -537,7 +537,7 @@ def serializeAppDetail(app_detail):
 	if app_detail.screenshot4:
 		screenshots.append(app_detail.screenshot4)
 	
-	appDetailToReturn ['d'] = app_detail.description
+	appDetailToReturn ['d'] = cgi.escape(app_detail.description)
 	appDetailToReturn ['scr'] = screenshots
 	appDetailToReturn ['curl'] = app_detail.company_url
 	appDetailToReturn ['surl'] = app_detail.support_url
@@ -572,7 +572,7 @@ def user_apps(request, user_id):
 			
 			for pinnedApp in pinnedApps:
 				pinnedAppsResponse['id'] = pinnedApp.app.app_id_appstore
-				pinnedAppsResponse['n'] = pinnedApp.app.app_name
+				pinnedAppsResponse['n'] = cgi.escape(pinnedApp.app.app_name)
 				pinnedAppsResponse['i'] = pinnedApp.app.icon_url
 				pinnedAppsResponse['a'] = pinnedApp.address
 				
@@ -590,7 +590,7 @@ def user_apps(request, user_id):
 			
 			for blockedApp in blockedApps:
 				blockedAppsResponse['id'] = blockedApp.app.app_id_appstore
-				blockedAppsResponse['n'] = blockedApp.app.app_name
+				blockedAppsResponse['n'] = cgi.escape(blockedApp.app.app_name)
 				blockedAppsResponse['i'] = blockedApp.app.icon_url
 				blockedArray.append(blockedAppsResponse.copy())
 			
@@ -621,7 +621,7 @@ def installed_apps(request):
 		
 		for app in appQuery:
 			appsWithScheme['i'] = app.app_id_appstore
-			appsWithScheme['s'] = app.url_schema
+			appsWithScheme['s'] =  cgi.escape(app.url_schema)
 			appsWithSchemeArray.append(appsWithScheme.copy())
 			
 		return response_generator.ok_with_message(appsWithSchemeArray)
