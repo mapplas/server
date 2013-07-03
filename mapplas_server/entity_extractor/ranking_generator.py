@@ -1,7 +1,9 @@
 # -*- encoding: utf-8 -*-
 from rest_api.models import Application, UserPinnedApps, UserBlockedApps, UserSharedApps, Geometry, Polygon, Ranking
 
-
+'''
+Generates a ranking value for each geometry
+'''
 def generate_ranking_for_geometries():
 
 	# Constants
@@ -56,10 +58,10 @@ def generate_ranking_for_geometries():
 		
 		# Ranking calculation
 		ranking = (alpha_c * ranking_parameter) + (beta_c * area_parameter) + (delta_c * pin_block_share_relation_parameter)
-		
+
 		geometry.ranking = ranking
 		geometry.save()
 		
-		
-		
-		
+		print('********')
+		print(ranking)
+		print(Application.objects.get(pk=geometry.app_id).app_name()
