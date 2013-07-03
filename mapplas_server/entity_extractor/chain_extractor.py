@@ -11,7 +11,6 @@ from entity_extractor import lang_detector
 
 from rest_api.models import Application, Storefront, AppPrice, Geometry, AppDetails, Polygon, ChainCathegory, GenreApp, CathegoryRelationMatrix
 
-
 #	from entity_extractor import chain_extractor
 #	chain_extractor.find_chains_in_apps()
 

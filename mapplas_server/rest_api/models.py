@@ -66,6 +66,7 @@ class Application(models.Model):
     
     url_schema = models.CharField(max_length=200, null=True)
     icon_url = models.CharField(max_length=1000, null=True)
+    icon_url_retina = models.CharField(max_length=1000, null=True)
     app_description = models.TextField()
     version = models.CharField(max_length=100)
     file_size = BigIntegerField(null=True)
@@ -181,6 +182,7 @@ class Geometry(models.Model):
     storefront = models.ForeignKey(Storefront, on_delete=models.CASCADE)
     polygon = models.ForeignKey(Polygon, on_delete=models.CASCADE)
     origin = models.CharField(max_length=10, null=True)
+    ranking = models.FloatField(null=True)
     
     objects = models.GeoManager()
 
