@@ -23,36 +23,39 @@ def find_chains_in_apps():
 	chains = Entities.objects.filter(region_type_id='CH')
 	
 	#chains = chains[400:450]
+	
+	# Exceptions
+	chains_with_description_only_in_english = ["H&M", "Domino's Pizza", "Calzedonia", "Promod"]
 			
 	for chain in chains:
 	
 		name_to_search = chain.name1
+		name_to_search_list = name_to_search.split('|')
+		
+		for name in name_to_search_list:
+		
+			if(name == "Toys'R'Us"):
+				name = 'TOYS"R"US'
 	
-		# Exceptions
-		chains_with_description_only_in_english = ["H&M", "Domino's Pizza", "Calzedonia", "Promod"]
+			# Print info
+			print(name)
+			print('************')
 		
-		if(name_to_search == "Toys'R'Us"):
-			name_to_search = 'TOYS"R"US'
-
-		# Print info
-		print(name_to_search)
-		print('************')
-	
-		# Finds exact match of string
-		regex = r'^.*(\m%s\M).*$' % name_to_search
-		
-		# Gets app details that match with previous reg. expression	
-		app_with_regex_title = AppDetails.objects.filter(title__iregex=regex)
-		
-		# Filter description in spanish
-		if(chain.name1 not in chains_with_description_only_in_english):
-			apps_with_regex_title_and_spanish = detect_spanish(app_with_regex_title)
-		
-		# Get chain matching cathegories
-		chain_cathegories = ChainCathegory.objects.filter(entity_id=chain.id).values_list('mapplas_cathegories', flat=True)
-		
-		# Filter apps
-		check_apps(apps_with_regex_title_and_spanish, chain, chain_cathegories)
+			# Finds exact match of string
+			regex = r'^.*(\m%s\M).*$' % name
+			
+			# Gets app details that match with previous reg. expression	
+			app_with_regex_title = AppDetails.objects.filter(title__iregex=regex)
+			
+			# Filter description in spanish
+			if(chain.name1 not in chains_with_description_only_in_english):
+				apps_with_regex_title_and_spanish = detect_spanish(app_with_regex_title)
+			
+			# Get chain matching cathegories
+			chain_cathegories = ChainCathegory.objects.filter(entity_id=chain.id).values_list('mapplas_cathegories', flat=True)
+			
+			# Filter apps
+			check_apps(apps_with_regex_title_and_spanish, chain, chain_cathegories)
 		
 
 '''
