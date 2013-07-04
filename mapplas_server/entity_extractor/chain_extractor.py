@@ -4,6 +4,7 @@ import re, os, csv
 from entity_extractor.views import get_storefront_id
 
 from django.contrib.gis.geos import Point, GEOSGeometry, MultiPolygon
+from django.core.files import File
 
 from entity_extractor.models import geonames_all_countries
 from entity_extractor.models import Entities, EntityTypes
@@ -21,7 +22,7 @@ def find_chains_in_apps():
 	
 	chains = Entities.objects.filter(region_type_id='CH')
 	
-	chains = chains[400:450]
+	#chains = chains[400:450]
 			
 	for chain in chains:
 	
@@ -90,6 +91,18 @@ def check_apps(apps, chain, chain_cathegories):
 			print(common_cathegories)
 			
 			if len(common_cathegories) > 0:
+			
+				# Filter title does not contain any other state name or ISO
+				# Open countries name and iso file
+				countries_file = open('/home/ubuntu/temp/countries/countries_name_iso.txt', 'r+')
+			
+				# Create log file for searches
+				log_file = open('/home/ubuntu/temp/logs/countries_name_in_ch_titles.txt', 'w')
+				myFile = File(log_file)
+				
+				detect_other_countries_name_in_title(app, countries_file, myFile)
+				myFile.close()
+				
 				
 				# Get current polygon
 				try:
@@ -139,3 +152,17 @@ def detect_spanish(apps):
 			print('App in Spanish')
 			
 	return spanish_app_details
+	
+	
+'''
+For each app, check if in its title appears any other country name or ISO
+'''
+def detect_other_countries_name_in_title(app, countries_file, myFile):
+		
+	# Loop country names
+	for line in countries_file:
+		
+		if line != 'Spain' and line != 'SP' and line != 'ESP' and line in app.app_name:
+	
+			myFile.write('%s in %s app. ID:%d' % (line, app.app_name, app.app_id_appstore))
+			continue
