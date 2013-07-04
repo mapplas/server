@@ -1,6 +1,6 @@
-import sys
-import mmap
+import sys, mmap, re
 
+from datetime import date
 from rest_api.models import Application
 
 
@@ -46,25 +46,6 @@ def load():
 							break
 	
 	geonames_file.close()	
-					
-					
-'''
-sentences = parse(description)
-train_sents = conll2000.chunked_sents('train.txt', chunk_types=['NP'])
-
-for sent in sentences:
-	chunk_parser = ChunkParser(train_sents)
-	tree = chunk_parser.parse(sent)
-	
-	for subtree in tree.subtrees(filter=lambda t: t.node == 'NP'):
-	    # print the noun phrase as a list of part-of-speech tagged words
-	    # print subtree.leaves()
-	    for chunk in nltk.ne_chunk(subtree.leaves()):
-	    	if hasattr(chunk, 'node'): 
-				if chunk.node == "GPE":
-					print(chunk)
-'''
-		
 	
 	
 def parse(document):
@@ -74,18 +55,36 @@ def parse(document):
 	
 	return sentences
 	
-'''	
-class ChunkParser(nltk.ChunkParserI):
-	def __init__(self, train_sents):
-		train_data = [[(t,c) for w,t,c in nltk.chunk.util.tree2conlltags(sent)]
-		for sent in train_sents]
-		self.tagger = nltk.TrigramTagger(train_data)
-		
-	def parse(self, sentence):
-		pos_tags = [pos for (word,pos) in sentence]
-		tagged_pos_tags = self.tagger.tag(pos_tags)
-		chunktags = [chunktag for (pos, chunktag) in tagged_pos_tags]
-		conlltags = [(word, pos, chunktag) for ((word,pos),chunktag)
-		in zip(sentence, chunktags)]
-		return nltk.chunk.util.conlltags2tree(conlltags)
 '''
+Gets a string and checks if 4 digit numbers appears on it. (year)
+If matches only one number, compares it with current year. If smaller, returns false.
+If matches more than a number, if all are smaller than current year, returns false.
+'''
+def is_valid_title_checking_years(title):
+
+	current_year = date.today().year
+	
+	pattern = re.compile('(\d{4})+')
+	matches = pattern.findall(title)
+	
+	number_of_matches = len(matches)
+	
+	if number_of_matches != 0:
+	
+		# One match
+		if number_of_matches == 1:
+			if int(matches[0]) < int(current_year):
+				return False
+			else:
+				return True
+			
+		# More than one match
+		else:
+		
+		 	for match in matches:
+		 		if int(match) >= int(current_year):
+		 			return True
+		 	
+		 	return False
+	else:
+		return True
