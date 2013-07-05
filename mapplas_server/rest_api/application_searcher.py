@@ -1,4 +1,5 @@
 # -*- encoding: utf-8 -*-
+import collections
 
 from rest_api.models import Application, Geometry, UserBlockedApps, UserPinnedApps, Polygon, AppDeviceType
 from rest_api import ranker
@@ -12,7 +13,8 @@ def search(lat, lon, accuracy, uid):
 		
 	# Create ranking dictionary
 	related_geom = geometries_apps_list.select_related('app_id')
-	ranking_dict = {}
+	
+	ranking_dict = collections.OrderedDict()
 	
 	for geometry in related_geom:
 		ranking_dict[geometry.app.app_id_appstore] = geometry.origin
@@ -35,6 +37,7 @@ def search(lat, lon, accuracy, uid):
 	
 	return apps_with_pinned_before
 
+
 '''
 REMOVES USER BLOCKED APPS FROM GIVEN APPLICATION LIST
 '''
@@ -49,7 +52,7 @@ def remove_user_blocked_apps(apps, user_id):
 '''
 SETS USER PINNED APPS AT THE BEGINNING OF THE LIST
 '''
-def pinned_apps_first(apps_ok_to_user, user_id, ranking_dict):
+def pinned_apps_first(apps_ok_to_user, user_id, ranking_dict):	
 	
 	user_pinned_apps_ids = UserPinnedApps.objects.filter(user_id=user_id).values_list('app_id', flat=True)
 	user_pinned_apps = Application.objects.filter(pk__in=user_pinned_apps_ids)
@@ -57,32 +60,20 @@ def pinned_apps_first(apps_ok_to_user, user_id, ranking_dict):
 	# Apps that are not pinned
 	apps_without_pinned = apps_ok_to_user.exclude(pk__in=user_pinned_apps_ids)
 	
+	# Order apps ok to user
+		# First delete from dict ids that dont appear in apps_ok_to_user
+		# Then order
+	
+	apps = []
+	for app_id, origin in ranking_dict.items():
+		
+		if app_id not in apps_ok_to_user.values_list('app_id_appstore', flat=True):
+			del ranking_dict[app_id]
+		else:
+			apps.append(Application.objects.get(pk=app_id))
+
+	
 	# Apps pinned in apps ok to user
 	pinned_apps_to_send = list(set(user_pinned_apps) & set(apps_ok_to_user))
-	
-	
-	# Order user not pinned apps
-	ch_apps = []
-	
-	cc_apps = []
-	p_apps = []
-	r_apps = []
-	s_apps = []
-	
-	for app in apps_without_pinned:
-		entity_type = ranking_dict[app.app_id_appstore]
-		
-		if entity_type == 'S':
-			s_apps.append(app)
-		elif entity_type == 'R':
-			r_apps.append(app)
-		elif entity_type == 'P':
-			p_apps.append(app)
-		elif entity_type == 'CC':
-			cc_apps.append(app)
-		elif entity_type == 'CH':
-			ch_apps.append(app)
-		else:
-			continue
 			
-	return pinned_apps_to_send + ch_apps + cc_apps + p_apps + r_apps + s_apps
+	return pinned_apps_to_send + apps
