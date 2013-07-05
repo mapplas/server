@@ -4,13 +4,13 @@ import re, os, csv
 from entity_extractor.views import get_storefront_id
 
 from django.contrib.gis.geos import Point, GEOSGeometry, MultiPolygon
+from django.core.files import File
 
 from entity_extractor.models import geonames_all_countries
 from entity_extractor.models import Entities, EntityTypes
 from entity_extractor import lang_detector
 
 from rest_api.models import Application, Storefront, AppPrice, Geometry, AppDetails, Polygon, ChainCathegory, GenreApp, CathegoryRelationMatrix
-
 
 #	from entity_extractor import chain_extractor
 #	chain_extractor.find_chains_in_apps()
@@ -22,37 +22,40 @@ def find_chains_in_apps():
 	
 	chains = Entities.objects.filter(region_type_id='CH')
 	
-	chains = chains[400:450]
+	#chains = chains[400:450]
+	
+	# Exceptions
+	chains_with_description_only_in_english = ["H&M", "Domino's Pizza", "Calzedonia", "Promod"]
 			
 	for chain in chains:
 	
 		name_to_search = chain.name1
+		name_to_search_list = name_to_search.split('|')
+		
+		for name in name_to_search_list:
+		
+			if(name == "Toys'R'Us"):
+				name = 'TOYS"R"US'
 	
-		# Exceptions
-		chains_with_description_only_in_english = ["H&M", "Domino's Pizza", "Calzedonia", "Promod"]
+			# Print info
+			print(name)
+			print('************')
 		
-		if(name_to_search == "Toys'R'Us"):
-			name_to_search = 'TOYS"R"US'
-
-		# Print info
-		print(name_to_search)
-		print('************')
-	
-		# Finds exact match of string
-		regex = r'^.*(\m%s\M).*$' % name_to_search
-		
-		# Gets app details that match with previous reg. expression	
-		app_with_regex_title = AppDetails.objects.filter(title__iregex=regex)
-		
-		# Filter description in spanish
-		if(chain.name1 not in chains_with_description_only_in_english):
-			apps_with_regex_title_and_spanish = detect_spanish(app_with_regex_title)
-		
-		# Get chain matching cathegories
-		chain_cathegories = ChainCathegory.objects.filter(entity_id=chain.id).values_list('mapplas_cathegories', flat=True)
-		
-		# Filter apps
-		check_apps(apps_with_regex_title_and_spanish, chain, chain_cathegories)
+			# Finds exact match of string
+			regex = r'^.*(\m%s\M).*$' % name
+			
+			# Gets app details that match with previous reg. expression	
+			app_with_regex_title = AppDetails.objects.filter(title__iregex=regex)
+			
+			# Filter description in spanish
+			if(chain.name1 not in chains_with_description_only_in_english):
+				apps_with_regex_title_and_spanish = detect_spanish(app_with_regex_title)
+			
+			# Get chain matching cathegories
+			chain_cathegories = ChainCathegory.objects.filter(entity_id=chain.id).values_list('mapplas_cathegories', flat=True)
+			
+			# Filter apps
+			check_apps(apps_with_regex_title_and_spanish, chain, chain_cathegories)
 		
 
 '''
@@ -91,6 +94,18 @@ def check_apps(apps, chain, chain_cathegories):
 			print(common_cathegories)
 			
 			if len(common_cathegories) > 0:
+			
+				# Filter title does not contain any other state name or ISO
+				# Open countries name and iso file
+				countries_file = open('/home/ubuntu/temp/countries/countries_name_iso.txt', 'r+')
+			
+				# Create log file for searches
+				log_file = open('/home/ubuntu/temp/logs/countries_name_in_ch_titles.txt', 'w')
+				myFile = File(log_file)
+				
+				detect_other_countries_name_in_title(app, countries_file, myFile)
+				myFile.close()
+				
 				
 				# Get current polygon
 				try:
@@ -140,3 +155,17 @@ def detect_spanish(apps):
 			print('App in Spanish')
 			
 	return spanish_app_details
+	
+	
+'''
+For each app, check if in its title appears any other country name or ISO
+'''
+def detect_other_countries_name_in_title(app, countries_file, myFile):
+		
+	# Loop country names
+	for line in countries_file:
+		
+		if line != 'Spain' and line != 'SP' and line != 'ESP' and line in app.app_name:
+	
+			myFile.write('%s in %s app. ID:%d' % (line, app.app_name, app.app_id_appstore))
+			continue

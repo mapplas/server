@@ -20,7 +20,7 @@ def find_geonames_in_apps_for_capital_cities():
 	entity_type = 'CC'
 	
 	cities = Entities.objects.filter(region_type_id=entity_type)
-	cities = cities[0:26]
+	cities = cities[26:52]
 	
 	# Get cities gazetteer
 	cities_file = open('/home/ubuntu/temp/cities/cities.txt', 'r')
@@ -60,6 +60,8 @@ def find_geonames_in_apps_for_province():
 	
 	entity_type = 'P'
 	provinces = Entities.objects.filter(region_type_id=entity_type)
+	#provinces = provinces[26:52]
+	app_geometry_save_dict = {}
 	
 	for province in provinces:
 
@@ -72,8 +74,8 @@ def find_geonames_in_apps_for_province():
 		app_details_with_regex_title = AppDetails.objects.filter(title__iregex=regex)
 		app_details_with_regex_description = AppDetails.objects.filter(description__iregex=regex)
 		
-		extractor_helper.check_apps(app_details_with_regex_title, province, entity_type)
-		extractor_helper.check_apps(app_details_with_regex_description, province, entity_type)
+		extractor_helper.check_apps(app_details_with_regex_title, province, entity_type, app_geometry_save_dict, True)
+		extractor_helper.check_apps(app_details_with_regex_description, province, entity_type, app_geometry_save_dict, False)
 		
 		
 		if province.name2:
@@ -86,8 +88,8 @@ def find_geonames_in_apps_for_province():
 			app_details_with_regex_translated_title = AppDetails.objects.filter(title__iregex=regex)
 			app_details_with_regex_translated_description = AppDetails.objects.filter(description__iregex=regex)
 			
-			extractor_helper.check_apps(app_details_with_regex_translated_title, province, entity_type)
-			extractor_helper.check_apps(app_details_with_regex_translated_description, province, entity_type)
+			extractor_helper.check_apps(app_details_with_regex_translated_title, province, entity_type, app_geometry_save_dict, True)
+			extractor_helper.check_apps(app_details_with_regex_translated_description, province, entity_type, app_geometry_save_dict, False)
 
 
 '''
@@ -96,6 +98,8 @@ R --> Region -- Search in name and description
 def find_geonames_in_apps_for_region():
 	entity_type = 'R'
 	regions = Entities.objects.filter(region_type_id=entity_type)
+	
+	app_geometry_save_dict = {}
 	
 	for region in regions:
 
@@ -108,8 +112,8 @@ def find_geonames_in_apps_for_region():
 		app_details_with_regex_title = AppDetails.objects.filter(title__iregex=regex)
 		app_details_with_regex_description = AppDetails.objects.filter(description__iregex=regex)
 		
-		extractor_helper.check_apps(app_details_with_regex_title, region, entity_type)
-		extractor_helper.check_apps(app_details_with_regex_description, region, entity_type)
+		extractor_helper.check_apps(app_details_with_regex_title, region, entity_type, app_geometry_save_dict, True)
+		extractor_helper.check_apps(app_details_with_regex_description, region, entity_type, app_geometry_save_dict, False)
 		
 		
 		if region.name2:
@@ -122,8 +126,8 @@ def find_geonames_in_apps_for_region():
 			app_details_with_regex_translated_title = AppDetails.objects.filter(title__iregex=regex)
 			app_details_with_regex_translated_description = AppDetails.objects.filter(description__iregex=regex)
 			
-			extractor_helper.check_apps(app_details_with_regex_translated_title, region, entity_type)
-			extractor_helper.check_apps(app_details_with_regex_translated_description, region, entity_type)
+			extractor_helper.check_apps(app_details_with_regex_translated_title, region, entity_type, app_geometry_save_dict, True)
+			extractor_helper.check_apps(app_details_with_regex_translated_description, region, entity_type, app_geometry_save_dict, False)
 			
 			
 '''
@@ -143,7 +147,7 @@ def find_geonames_in_apps_for_state():
 		regex = r'^.*(\m%s\M).*$' % state.name1
 		
 		app_details_with_regex_title = AppDetails.objects.filter(title__iregex=regex)		
-		extractor_helper.check_apps(app_details_with_regex_title, state, entity_type)
+		extractor_helper.check_apps(app_details_with_regex_title, state, entity_type, True)
 		
 		if state.name2:
 					
@@ -153,7 +157,7 @@ def find_geonames_in_apps_for_state():
 			regex = r'^.*(\m%s\M).*$' % state.name2
 			
 			app_details_with_regex_translated_title = AppDetails.objects.filter(title__iregex=regex)
-			extractor_helper.check_apps(app_details_with_regex_translated_title, state, entity_type)
+			extractor_helper.check_apps(app_details_with_regex_translated_title, state, entity_type, True)
 		
 		
 '''

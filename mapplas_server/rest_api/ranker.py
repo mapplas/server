@@ -28,7 +28,8 @@ def rank_apps(lat, lon, accuracy):
 	region_polygon_ids = Polygon.objects.filter(Q(origin='CC', polygon__intersects=my_area) | Q(origin='P', polygon__intersects=my_area) | Q(origin='R', polygon__intersects=my_area)).values_list('id', flat=True)
 	
 	# Get geometries for polygons	
-	region_geometries_ids = Geometry.objects.filter(polygon_id__in=region_polygon_ids)
-	chain_geometries_ids = Geometry.objects.filter(polygon_id__in=chain_ids)
+	geometries_ids = Geometry.objects.filter(Q(polygon_id__in=region_polygon_ids) | Q(polygon_id__in=chain_ids)).order_by('-ranking')
+# 	chain_geometries_ids = Geometry.objects.filter(polygon_id__in=chain_ids)
 	
-	return region_geometries_ids | chain_geometries_ids
+	#return region_geometries_ids | chain_geometries_ids
+	return geometries_ids

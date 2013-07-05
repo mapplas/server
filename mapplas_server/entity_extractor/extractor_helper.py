@@ -5,7 +5,9 @@ from django.core.files import File
 
 from entity_extractor.models import geonames_all_countries
 from entity_extractor.models import Entities
+
 from entity_extractor import lang_detector
+from entity_extractor import regex
 
 from spain_multipolygons.models import SpainRegions
 
@@ -26,7 +28,7 @@ def check_app_detail_description_is_spanish(app_detail_description):
 Check if apps exist for given region in storefront.
 If yes, created a geometry for that app in given region.
 '''
-def check_apps(app_details_for_entity, entity, entity_type, app_geometry_save_dict):
+def check_apps(app_details_for_entity, entity, entity_type, app_geometry_save_dict, checking_title):
 
 	storefront_id = get_storefront_id(entity, entity_type)
 
@@ -34,41 +36,48 @@ def check_apps(app_details_for_entity, entity, entity_type, app_geometry_save_di
 	
 		if check_app_detail_description_is_spanish(app.description):
 		
-			try:
-				app_price = AppPrice.objects.get(app_id=app.app_id, storefront_id=storefront_id)
-				
-				geometry = Geometry()
-				
-				try:
-					if Application.objects.get(pk=app.app_id):
-					
-						geometry.app_id = app.app_id
-						geometry.storefront_id = storefront_id
-						geometry.origin = entity_type
-						
-				except Application.DoesNotExist:
-					print('Does not exist application for description')
-					continue
-					
-				polygon = Polygon.objects.get(entity_id=entity.id)
-	
-				if polygon:
-				
-					geometry.polygon_id = polygon.id	
-					geometry.save()
-					
-					app_geometry_save_dict[app.app_id] = True 
-					
-					print('App ' + app.title)
-					#file_to_write.write('App ' + app.title.encode('utf-8'))
-				else:
-					print('null polygon for region ' + entity.name1)
-					#file_to_write.write('null polygon for region ' + region.encode('utf-8'))
+			if checking_title:
 			
-			except AppPrice.DoesNotExist:
-				# App does not exist for that storefront. Do nothing.
-				print('App ' + app.title + ' does not exist in that storefront')
-				#file_to_write.write('App ' + app.title.encode('utf-8') + ' does not exist in that storefront')
+				if regex.is_valid_title_checking_years(app.title):
+		
+					try:
+						app_price = AppPrice.objects.get(app_id=app.app_id, storefront_id=storefront_id)
+						
+						geometry = Geometry()
+						
+						try:
+							if Application.objects.get(pk=app.app_id):
+							
+								geometry.app_id = app.app_id
+								geometry.storefront_id = storefront_id
+								geometry.origin = entity_type
+								
+						except Application.DoesNotExist:
+							print('Does not exist application for description')
+							continue
+							
+						polygon = Polygon.objects.get(entity_id=entity.id)
+			
+						if polygon:
+						
+							geometry.polygon_id = polygon.id	
+							geometry.save()
+							
+							app_geometry_save_dict[app.app_id] = True 
+							
+							print('App ' + app.title)
+							#file_to_write.write('App ' + app.title.encode('utf-8'))
+						else:
+							print('null polygon for region ' + entity.name1)
+							#file_to_write.write('null polygon for region ' + region.encode('utf-8'))
+					
+					except AppPrice.DoesNotExist:
+						# App does not exist for that storefront. Do nothing.
+						print('App ' + app.title + ' does not exist in that storefront')
+						#file_to_write.write('App ' + app.title.encode('utf-8') + ' does not exist in that storefront')
+						
+				else:
+					print('Current year data error: %s' % app.title)
 	
 	return app_geometry_save_dict
 	
@@ -96,7 +105,7 @@ def check_apps_for_city_match(app_titles_for_entity, app_details_for_entity, ent
 	app_geometry_save_dict = {}
 	
 	# Check app titles
-	app_geometry_save_dict = check_apps(app_titles_for_entity, entity, entity_type, app_geometry_save_dict)
+	app_geometry_save_dict = check_apps(app_titles_for_entity, entity, entity_type, app_geometry_save_dict, True)
 	
 	# Check app descriptions
 	check_city_apps(app_details_for_entity, entity, entity_type, app_geometry_save_dict, name_to_search, subs)
@@ -154,7 +163,8 @@ def check_city_apps(apps, entity, entity_type, app_geometry_save_dict, name_to_s
 						#file_to_write.write('App ' + app.title.encode('utf-8') + ' does not exist in that storefront')
 				
 				else:
-					print('App ' + app.title + ' has more than 3 city names in description')
+					polygon = Polygon.objects.get(entity_id=entity.id)
+					print('App %s has more than 3 city names in description. App id:%d. Polygon id:%d' % (app.title, app.app_id_appstore, polygon.polygon_id))
 		else:
 			print('Geometry saved in title for app ' + app.title)
 				
