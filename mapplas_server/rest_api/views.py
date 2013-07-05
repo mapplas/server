@@ -132,7 +132,7 @@ def applications(request, multiple):
 			
 				appsDict['id'] = app.app_id_appstore
 				appsDict['n'] = cgi.escape(app.app_name)
-				appsDict['i'] = app.icon_url
+				appsDict['i'] = app.icon_url_retina
 				
 				if(app.url_schema != None):
 					appsDict['sc'] = cgi.escape(app.url_schema)
@@ -573,7 +573,7 @@ def user_apps(request, user_id):
 			for pinnedApp in pinnedApps:
 				pinnedAppsResponse['id'] = pinnedApp.app.app_id_appstore
 				pinnedAppsResponse['n'] = cgi.escape(pinnedApp.app.app_name)
-				pinnedAppsResponse['i'] = pinnedApp.app.icon_url
+				pinnedAppsResponse['i'] = pinnedApp.app.icon_url_retina
 				pinnedAppsResponse['a'] = pinnedApp.address
 				
 				pinnedArray.append(pinnedAppsResponse.copy())
@@ -591,7 +591,7 @@ def user_apps(request, user_id):
 			for blockedApp in blockedApps:
 				blockedAppsResponse['id'] = blockedApp.app.app_id_appstore
 				blockedAppsResponse['n'] = cgi.escape(blockedApp.app.app_name)
-				blockedAppsResponse['i'] = blockedApp.app.icon_url
+				blockedAppsResponse['i'] = blockedApp.app.icon_url_retina
 				blockedArray.append(blockedAppsResponse.copy())
 			
 			response['blocked'] = blockedArray

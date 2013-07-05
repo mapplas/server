@@ -38,7 +38,7 @@ def check_apps(app_details_for_entity, entity, entity_type, app_geometry_save_di
 		
 			if checking_title:
 			
-				if regex.is_valid_title_checking_years(app.app_name):
+				if regex.is_valid_title_checking_years(app.title):
 		
 					try:
 						app_price = AppPrice.objects.get(app_id=app.app_id, storefront_id=storefront_id)
@@ -163,7 +163,8 @@ def check_city_apps(apps, entity, entity_type, app_geometry_save_dict, name_to_s
 						#file_to_write.write('App ' + app.title.encode('utf-8') + ' does not exist in that storefront')
 				
 				else:
-					print('App ' + app.title + ' has more than 3 city names in description')
+					polygon = Polygon.objects.get(entity_id=entity.id)
+					print('App %s has more than 3 city names in description. App id:%d. Polygon id:%d' % (app.title, app.app_id_appstore, polygon.polygon_id))
 		else:
 			print('Geometry saved in title for app ' + app.title)
 				
