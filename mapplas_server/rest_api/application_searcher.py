@@ -65,9 +65,10 @@ def pinned_apps_first(apps_ok_to_user, user_id, ranking_dict):
 		# Then order
 	
 	apps = []
+	apps_ok_to_user_ids = apps_ok_to_user.values_list('app_id_appstore', flat=True)
+	
 	for app_id, origin in ranking_dict.items():
-		
-		if app_id not in apps_ok_to_user.values_list('app_id_appstore', flat=True):
+		if app_id not in apps_ok_to_user_ids:
 			del ranking_dict[app_id]
 		else:
 			apps.append(Application.objects.get(pk=app_id))

@@ -92,8 +92,8 @@ def generate_mpoly_from_file(filename):
 		    point = GEOSGeometry('POINT(%s %s)' % (lon, lat))
 		    
 		    # 1º = 111.045km
-		    # 50 meters of radius
-		    radius = 0.05 / 111.045
+		    # 5 meters of radius
+		    radius = 0.005 / 111.045
 		    
 		    area = point.buffer(radius)
 		    poligons.append(area)
