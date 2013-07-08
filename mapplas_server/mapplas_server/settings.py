@@ -153,6 +153,7 @@ INSTALLED_APPS = (
     'spain_multipolygons',
     'entity_extractor',
     'djcelery',
+    'usa_multipolygons',
 )
 
 # A sample logging configuration. The only tangible logging
