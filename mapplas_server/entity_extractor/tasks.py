@@ -30,7 +30,7 @@ def find_chains_in_apps():
 	
 	chains = Entities.objects.filter(region_type_id='CH')
 	
-	chains = chains[700:800]
+# 	chains = chains[700:800]
 				
 	for chain in chains:
 	
@@ -45,7 +45,7 @@ def find_chains_in_apps():
 		
 			if(name == "Toys'R'Us"):
 				name = 'TOYS"R"US'
-	
+								
 			# Print info
 			#print(name_to_search)
 			#print('************')
@@ -71,9 +71,9 @@ def find_chains_in_apps():
 			
 			# Filter apps
 			check_apps(app_with_regex_title, chain, chain_cathegories, myFile)
-		
-		myFile.close()
-		
+	
+			myFile.close()
+			
 
 '''
 Check if apps exist for given region in storefront.
