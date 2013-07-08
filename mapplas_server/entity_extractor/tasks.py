@@ -8,7 +8,7 @@ CHAINS TASKS
 '''
 import re, os, csv
 
-from entity_extractor.views import get_storefront_id
+from entity_extractor.extractor_helper import get_storefront_id
 
 from django.contrib.gis.geos import Point, GEOSGeometry, MultiPolygon
 
@@ -30,43 +30,47 @@ def find_chains_in_apps():
 	
 	chains = Entities.objects.filter(region_type_id='CH')
 	
-	chains = chains[495:600]
+	chains = chains[700:800]
 				
 	for chain in chains:
 	
 		name_to_search = chain.name1
+		
+		name_split = name_to_search.split('|')
 	
 		# Exceptions
 		chains_with_description_only_in_english = ["H&M", "Domino's Pizza", "Calzedonia", "Promod"]
 		
-		if(name_to_search == "Toys'R'Us"):
-			name_to_search = 'TOYS"R"US'
-
-		# Print info
-		#print(name_to_search)
-		#print('************')
+		for name in name_split:
 		
-		write_file = open('/home/ubuntu/temp/chains_log/%s.txt' % name_to_search, 'w')
-		myFile = File(write_file)
-		
-		myFile.write(name_to_search.encode('utf-8') + '\n')
-		myFile.write('*********************\n')
+			if(name == "Toys'R'Us"):
+				name = 'TOYS"R"US'
 	
-		# Finds exact match of string
-		regex = r'^.*(\m%s\M).*$' % name_to_search
+			# Print info
+			#print(name_to_search)
+			#print('************')
+			
+			write_file = open('/home/ubuntu/temp/chains_log/%s.txt' % name, 'w')
+			myFile = File(write_file)
+			
+			myFile.write(name.encode('utf-8') + '\n')
+			myFile.write('*********************\n')
 		
-		# Gets app details that match with previous reg. expression	
-		app_with_regex_title = AppDetails.objects.filter(title__iregex=regex)
-		
-		# Filter description in spanish
-		if(chain.name1 not in chains_with_description_only_in_english):
-			app_with_regex_title = detect_spanish(app_with_regex_title)
-		
-		# Get chain matching cathegories
-		chain_cathegories = ChainCathegory.objects.filter(entity_id=chain.id).values_list('mapplas_cathegories', flat=True)
-		
-		# Filter apps
-		check_apps(app_with_regex_title, chain, chain_cathegories, myFile)
+			# Finds exact match of string
+			regex = r'^.*(\m%s\M).*$' % name
+			
+			# Gets app details that match with previous reg. expression	
+			app_with_regex_title = AppDetails.objects.filter(title__iregex=regex)
+			
+			# Filter description in spanish
+			if(chain.name1 not in chains_with_description_only_in_english):
+				app_with_regex_title = detect_spanish(app_with_regex_title)
+			
+			# Get chain matching cathegories
+			chain_cathegories = ChainCathegory.objects.filter(entity_id=chain.id).values_list('mapplas_cathegories', flat=True)
+			
+			# Filter apps
+			check_apps(app_with_regex_title, chain, chain_cathegories, myFile)
 		
 		myFile.close()
 		
