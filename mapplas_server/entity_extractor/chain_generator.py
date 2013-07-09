@@ -18,14 +18,22 @@ from rest_api.models import Application, Storefront, AppPrice, Geometry, AppDeta
 #	chain_generator.extract_entities_from_csv_files()
 
 '''
-Get all files from /home/ubuntu/temp/chains and generates a CH ENTITY with file points.
+STEP 1
+Get all files from /home/ubuntu/temp/chains_XXX and generates a CH ENTITY with file points.
+
+Storefront country code:
+	ESP - Spain
+	USA - United States of America
 '''
-def extract_entities_from_csv_files():
+def extract_entities_from_csv_files(storefront_country_code):
 	
 	p = re.compile(r'^.*.csv$')
 	
-	for path, subdirs, files in os.walk('/home/ubuntu/temp/chains/'):
+	spain_state_entity_id = Entities.objects.get(name1='España').id
+	usa_state_entity_id = Entities.objects.get(name1='United States of America').id
 	
+	for path, subdirs, files in os.walk('/home/ubuntu/temp/chains_%s/' % storefront_country_code.lower()):
+		
 		for filename in files:
 			
 			filename = str(filename)
@@ -39,25 +47,33 @@ def extract_entities_from_csv_files():
 					entity = Entities.objects.get(name1=filename_clean, region_type='CH')
 					print('Exists ' + filename_clean + ' entity')
 					
-					entity.mpoly = generate_mpoly_from_file(filename)
+					entity.mpoly = generate_mpoly_from_file(filename, storefront_country_code)
 					entity.save()
 					
 				except Entities.DoesNotExist:
 					print('Create ' + filename_clean + ' entity')
 					entity = Entities()
-					entity.name1 = get_name_from_file(filename)
+					entity.name1 = get_name_from_file(filename, storefront_country_code)
 					entity.name2 = filename
-					entity.lang_code = 'ES'
-					entity.lang_code2 = 'ES'
+					
+					if storefront_country_code == 'ESP':
+						entity.lang_code = 'ES'
+						entity.lang_code2 = 'ES'
+						entity.parent = spain_state_entity_id
+					else:
+						entity.lang_code = 'EN'
+						entity.lang_code2 = 'EN'
+						entity.parent = usa_state_entity_id
+						
 					entity.region_type = EntityTypes.objects.get(identifier='CH')
-					entity.mpoly = generate_mpoly_from_file(filename)
+					entity.mpoly = generate_mpoly_from_file(filename, storefront_country_code)
 					entity.save()
 		
 		
 
-def get_name_from_file(filename):
+def get_name_from_file(filename, storefront_country_code):
 
-	csv_file = open("/home/ubuntu/temp/chains/%s" % filename, "rU")
+	csv_file = open("/home/ubuntu/temp/chains_%s/%s" % (storefront_country_code.lower(), filename), "rU")
 	csv_reader = csv.reader(csv_file , delimiter=',', quotechar='|')
 	
 	first = True
@@ -70,9 +86,9 @@ def get_name_from_file(filename):
 		
 	
 				
-def generate_mpoly_from_file(filename):
+def generate_mpoly_from_file(filename, storefront_country_code):
 
-	csv_file = open("/home/ubuntu/temp/chains/%s" % filename, "rU")
+	csv_file = open("/home/ubuntu/temp/chains_%s/%s" % (storefront_country_code.lower(), filename), "rU")
 	poligons = []
 
 	csv_reader = csv.reader(csv_file , delimiter=',', quotechar='|')
@@ -104,14 +120,20 @@ def generate_mpoly_from_file(filename):
 
 	return MultiPolygon(poligons)
 	
+	
 '''
+STEP 2
+Creates chain cathegories tables
 
+Storefront country code:
+	ESP - Spain
+	USA - United States of America
 '''
 #	from entity_extractor import chain_generator
-#	chain_generator.populate_chain_category_table_from_txt()
-def populate_chain_category_table_from_txt():
+#	chain_generator.populate_chain_category_table_from_txt('USA')
+def populate_chain_category_table_from_txt(storefront_country_code):
 
-	csv_file = codecs.open('/home/ubuntu/temp/category_places.txt', encoding='latin-1')
+	csv_file = codecs.open('/home/ubuntu/temp/category_places_%s.txt' % storefront_country_code.lower(), encoding='latin-1')
 	
 	i = 0
 	

@@ -1,6 +1,6 @@
 # -*- encoding: utf-8 -*-
-
 import re
+
 from django.core.files import File
 
 from entity_extractor.models import geonames_all_countries
