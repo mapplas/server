@@ -3,8 +3,10 @@ from rest_api.models import Application, UserPinnedApps, UserBlockedApps, UserSh
 
 '''
 Generates a ranking value for each geometry
+
+If overwrite = Yes, all geometries ranking are recalculed
 '''
-def generate_ranking_for_geometries():
+def generate_ranking_for_geometries(overwrite):
 
 	# Constants
 	alpha_c = 1
@@ -17,7 +19,14 @@ def generate_ranking_for_geometries():
 	blocked_apps_total_count = UserBlockedApps.objects.all().count()
 	shared_apps_total_count = UserSharedApps.objects.all().count()
 	pin_block_share_total_relation = pinned_apps_total_count - blocked_apps_total_count + (2 * shared_apps_total_count)
-	geometries = Geometry.objects.all()
+	
+	# Overwrite previous generated geometries or not
+	if overwrite:
+		geometries = Geometry.objects.all()
+	else:
+		geometries = Geometry.objects.filter(ranking!=NoneType)
+		
+		
 	# Loop all geometries
 	for geometry in geometries:
 	

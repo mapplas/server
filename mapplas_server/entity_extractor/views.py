@@ -6,7 +6,7 @@ from entity_extractor.models import Entities
 
 from spain_multipolygons.models import SpainRegions
 
-from rest_api.models import AppDetails, Polygon
+from rest_api.models import AppDetails, Polygon, Storefront
 
 from entity_extractor import extractor_helper
 
@@ -55,11 +55,16 @@ def find_geonames_in_apps_for_capital_cities():
 
 '''
 P --> Province -- Search in name and description
+
+Storefront lang code:
+	ESP - Spain
+	USA - United States of America
 '''
-def find_geonames_in_apps_for_province():
-	
+def find_geonames_in_apps_for_province_and_storefront(storefront_country_code):	
 	entity_type = 'P'
-	provinces = Entities.objects.filter(region_type_id=entity_type)
+	storefront_id = Storefront.objects.get(country_code=storefront_country_code).storefront_id
+
+	provinces = Entities.objects.filter(region_type_id=entity_type, storefront_id=storefront_id)
 	#provinces = provinces[26:52]
 	app_geometry_save_dict = {}
 	
@@ -72,11 +77,13 @@ def find_geonames_in_apps_for_province():
 		regex = r'^.*(\m%s\M).*$' % province.name1
 		
 		app_details_with_regex_title = AppDetails.objects.filter(title__iregex=regex)
-		app_details_with_regex_description = AppDetails.objects.filter(description__iregex=regex)
-		
 		extractor_helper.check_apps(app_details_with_regex_title, province, entity_type, app_geometry_save_dict, True)
-		extractor_helper.check_apps(app_details_with_regex_description, province, entity_type, app_geometry_save_dict, False)
-		
+
+		# Do not search for EEUU entities in description
+		if storefront_country_code == 'ESP':
+			app_details_with_regex_description = AppDetails.objects.filter(description__iregex=regex)
+			extractor_helper.check_apps(app_details_with_regex_description, province, entity_type, app_geometry_save_dict, False)
+
 		
 		if province.name2:
 					
@@ -86,18 +93,26 @@ def find_geonames_in_apps_for_province():
 			regex = r'^.*(\m%s\M).*$' % province.name2
 			
 			app_details_with_regex_translated_title = AppDetails.objects.filter(title__iregex=regex)
-			app_details_with_regex_translated_description = AppDetails.objects.filter(description__iregex=regex)
-			
 			extractor_helper.check_apps(app_details_with_regex_translated_title, province, entity_type, app_geometry_save_dict, True)
-			extractor_helper.check_apps(app_details_with_regex_translated_description, province, entity_type, app_geometry_save_dict, False)
-
+			
+			# Do not search for EEUU entities in description
+			if storefront_country_code == 'ESP':
+				app_details_with_regex_translated_description = AppDetails.objects.filter(description__iregex=regex)
+				extractor_helper.check_apps(app_details_with_regex_translated_description, province, entity_type, app_geometry_save_dict, False)
+			
 
 '''
 R --> Region -- Search in name and description
+
+Storefront lang code:
+	ESP - Spain
+	USA - United States of America
 '''
-def find_geonames_in_apps_for_region():
+def find_geonames_in_apps_for_region_and_storefront(storefront_country_code):
 	entity_type = 'R'
-	regions = Entities.objects.filter(region_type_id=entity_type)
+	storefront_id = Storefront.objects.get(country_code=storefront_country_code).storefront_id
+
+	regions = Entities.objects.filter(region_type_id=entity_type, storefront_id=storefront_id)
 	
 	app_geometry_save_dict = {}
 	
@@ -110,10 +125,12 @@ def find_geonames_in_apps_for_region():
 		regex = r'^.*(\m%s\M).*$' % region.name1
 		
 		app_details_with_regex_title = AppDetails.objects.filter(title__iregex=regex)
-		app_details_with_regex_description = AppDetails.objects.filter(description__iregex=regex)
-		
 		extractor_helper.check_apps(app_details_with_regex_title, region, entity_type, app_geometry_save_dict, True)
-		extractor_helper.check_apps(app_details_with_regex_description, region, entity_type, app_geometry_save_dict, False)
+
+		# Do not search for EEUU entities in description		
+		if storefront_country_code == 'ESP':
+			app_details_with_regex_description = AppDetails.objects.filter(description__iregex=regex)
+			extractor_helper.check_apps(app_details_with_regex_description, region, entity_type, app_geometry_save_dict, False)
 		
 		
 		if region.name2:
@@ -124,10 +141,13 @@ def find_geonames_in_apps_for_region():
 			regex = r'^.*(\m%s\M).*$' % region.name2
 			
 			app_details_with_regex_translated_title = AppDetails.objects.filter(title__iregex=regex)
-			app_details_with_regex_translated_description = AppDetails.objects.filter(description__iregex=regex)
-			
 			extractor_helper.check_apps(app_details_with_regex_translated_title, region, entity_type, app_geometry_save_dict, True)
-			extractor_helper.check_apps(app_details_with_regex_translated_description, region, entity_type, app_geometry_save_dict, False)
+
+			# Do not search for EEUU entities in description
+			if storefront_country_code == 'ESP':
+				app_details_with_regex_translated_description = AppDetails.objects.filter(description__iregex=regex)
+				extractor_helper.check_apps(app_details_with_regex_translated_description, region, entity_type, app_geometry_save_dict, False)
+
 			
 			
 '''
@@ -197,3 +217,32 @@ def generate_polygons(entity_type):
 		poly.name = entity.name1
 		
 		poly.save()
+		
+		
+'''
+Generates polygon objects for all usa entities
+'''
+def generate_polygons_for_usa_entities():
+
+	entities = Entities.objects.filter(storefront_id=143441)
+	
+	for entity in entities:
+		
+		try:
+			# If exists do nothing
+			polygon = Polygon.objects.get(entity_id=entity.id)
+			print('Exists polygon for entity %s' % polygon.name)
+			continue
+			
+		except Polygon.DoesNotExist:
+		
+			polygon = Polygon()
+			
+			polygon.polygon = entity.mpoly
+			polygon.entity = entity
+			polygon.origin = entity.region_type_id
+			polygon.name = entity.name1
+			
+			polygon.save()
+			
+			print('Created polygon for entity %s' % polygon.name)
