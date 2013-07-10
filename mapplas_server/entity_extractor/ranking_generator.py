@@ -16,6 +16,8 @@ def generate_ranking_for_geometries(overwrite):
 	alpha_c = 1
 	beta_c = 1
 	delta_c = 1
+	gamma_c = 1
+	epsilon_c = 2
 	
 	#
 	ranking_max_value = 1002
@@ -61,18 +63,17 @@ def generate_ranking_for_geometries(overwrite):
 		
 		
 		# Food & Drink | Travel | Navigation | Reference | Education genres ranks better
-		if is_geometry_app_genre_in_main_appstore_genres(geometry, appstore_main_genre_ids):
-			# Add more ranking
+		main_genres_parameter = is_geometry_app_genre_in_main_appstore_genres(geometry, appstore_main_genre_ids)
 			
 		
 		# Oficial string match in app title ranks better
-		if geometry_contains_official_string_in_app_title(geometry):
-			# Add more ranking
+		official_app_parameter = geometry_contains_official_string_in_app_title(geometry)
+
 			
 		#
 		# Ranking calculation
 		#
-		ranking =  float(alpha_c * ranking_parameter) + float(beta_c * area_parameter) + float(delta_c * popularity_parameter)
+		ranking =  float(alpha_c * ranking_parameter) + float(beta_c * area_parameter) + float(delta_c * popularity_parameter) + float(gamma_c * main_genres_parameter) + float(epsilon_c * official_app_parameter)
 
 		geometry.ranking = float(ranking)
 		geometry.save()
@@ -154,9 +155,9 @@ def is_geometry_app_genre_in_main_appstore_genres(geometry, appstore_main_genre_
 	
 	# If geometry related app genre is in previous array, increment ranking	
 	if genre_app.genre_id in appstore_main_genre_ids:
-		return True
+		return 1
 	else:
-		return False
+		return 0
 	
 
 '''
@@ -168,6 +169,6 @@ When extracting app with extractor algorithms, if 'official' or 'oficial' string
 def geometry_contains_official_string_in_app_title(geometry):
 	
 	if geometry.ranking == 716141:
-		return True
+		return 1
 	else:
-		return False
+		return 0
