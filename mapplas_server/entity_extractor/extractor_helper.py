@@ -16,7 +16,7 @@ from rest_api.models import Application, Storefront, AppPrice, Geometry, AppDeta
 '''
 Checks given string language is spanish
 '''
-def check_app_detail_description_is_given_country(app_detail_description, entity):
+def check_app_detail_description_is_given_country_language(app_detail_description, entity):
 
 	language_to_check = 'english'
 
@@ -39,7 +39,7 @@ def check_apps(app_details_for_entity, entity, entity_type, app_geometry_save_di
 
 	for app in app_details_for_entity:
 	
-		if check_app_detail_description_is_given_country(app.description, entity):
+		if check_app_detail_description_is_given_country_language(app.description, entity):
 
 			if checking_title:
 			
