@@ -69,6 +69,8 @@ class Entities(models.Model):
 	lang_code = models.CharField(max_length=10, null=True)
 	lang_code2 = models.CharField(max_length=10, null=True)
 	
+	storefront = models.ForeignKey('rest_api.Storefront', on_delete=models.CASCADE)
+	
 	mpoly = models.MultiPolygonField(null=True)
 		
 	objects = models.GeoManager()

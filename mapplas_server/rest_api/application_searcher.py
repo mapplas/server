@@ -59,20 +59,14 @@ def pinned_apps_first(apps_ok_to_user, user_id, ranking_dict):
 	
 	# Apps that are not pinned
 	apps_without_pinned = apps_ok_to_user.exclude(pk__in=user_pinned_apps_ids)
-	
-	# Order apps ok to user
-		# First delete from dict ids that dont appear in apps_ok_to_user
-		# Then order
-	
-	apps = []
-	apps_ok_to_user_ids = apps_ok_to_user.values_list('app_id_appstore', flat=True)
-	
-	for app_id, origin in ranking_dict.items():
-		if app_id not in apps_ok_to_user_ids:
-			del ranking_dict[app_id]
-		else:
-			apps.append(Application.objects.get(pk=app_id))
 
+	# Order apps ok to user
+	apps = []
+	apps_ok_to_user_ids = apps_without_pinned.values_list('app_id_appstore', flat=True)
+
+	for app_id, origin in ranking_dict.items():
+		if app_id in apps_ok_to_user_ids:
+			apps.append(Application.objects.get(pk=app_id))
 	
 	# Apps pinned in apps ok to user
 	pinned_apps_to_send = list(set(user_pinned_apps) & set(apps_ok_to_user))
