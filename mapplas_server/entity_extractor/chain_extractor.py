@@ -214,8 +214,10 @@ def detect_other_countries_name_in_title(app, countries_file, myFile, storefront
 		
 	# Loop country names
 	for line in countries_file:
-		
-		if (line != country_name and line != country_iso2 and line != country_iso3) and (line in app.title or line in app.description):
+	
+		regex = r'\b%s\b' % line
+				
+		if (line != country_name and line != country_iso2 and line != country_iso3) and (re.search(regex, app.title) or re.search(regex, app.description)):
 			
 			countries_name_in_ch_titles_file = File(log_file)
 			countries_name_in_ch_titles_file.write('%s in %s app. ID:%d' % (line, app.title, app.app_id))
@@ -225,7 +227,12 @@ def detect_other_countries_name_in_title(app, countries_file, myFile, storefront
 			
 	# If any other country name found in title, check if in description or title current country name appears.
 	if found:
-		if (country_name in app.description) or (country_iso2 in app.description) or (country_iso3 in app.description) or (country_name in app.title) or (country_iso2 in app.title) or (country_iso3 in app.title):
+		
+		regex_name = r'\b%s\b' % country_name
+		regex_iso2 = r'\b%s\b' % country_iso2
+		regex_iso3 = r'\b%s\b' % country_iso3
+	
+		if (re.search(regex_name, app.description) or re.search(regex_iso2, app.description) or re.search(regex_iso3, app.description) or re.search(regex_name, app.title) or re.search(regex_iso2, app.title) or re.search(regex_iso3, app.title)):
 			countries_name_in_ch_titles_file.write('Found %s in title or description. OK' % country_name)
 			countries_name_in_ch_titles_file.close()
 			return False
