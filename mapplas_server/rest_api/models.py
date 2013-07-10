@@ -246,7 +246,7 @@ class DeveloperApp(models.Model):
     	unique_together = ('app_id', 'developer_id')
 
     def __str__(self):
-        return self.app_id + ' - ' + self.developer_id
+        return '%d - %s' % (self.app_id, self.developer_id)
 
 
 class Genre(models.Model):
