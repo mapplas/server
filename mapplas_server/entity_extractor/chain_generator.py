@@ -29,8 +29,12 @@ def extract_entities_from_csv_files(storefront_country_code):
 	
 	p = re.compile(r'^.*.csv$')
 	
+	# CONSTANTS
 	spain_state_entity_id = Entities.objects.get(name1='España').id
+	spain_storefront_id = Storefront.objects.get(country_code='ESP').storefront_id
+	
 	usa_state_entity_id = Entities.objects.get(name1='United States of America').id
+	usa_storefront_id = Storefront.objects.get(country_code='USA').storefront_id
 	
 	for path, subdirs, files in os.walk('/home/ubuntu/temp/chains_%s/' % storefront_country_code.lower()):
 		
@@ -60,11 +64,13 @@ def extract_entities_from_csv_files(storefront_country_code):
 						entity.lang_code = 'ES'
 						entity.lang_code2 = 'ES'
 						entity.parent = spain_state_entity_id
+						entity.storefront_id = spain_storefront_id
 					else:
 						entity.lang_code = 'EN'
 						entity.lang_code2 = 'EN'
 						entity.parent = usa_state_entity_id
-						
+						entity.storefront_id = usa_storefront_id
+												
 					entity.region_type = EntityTypes.objects.get(identifier='CH')
 					entity.mpoly = generate_mpoly_from_file(filename, storefront_country_code)
 					entity.save()
