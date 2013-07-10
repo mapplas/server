@@ -188,9 +188,6 @@ def detect_other_countries_name_in_title(app, countries_file, myFile, storefront
 	# Open countries name and iso file
 	countries_file = open('/home/ubuntu/temp/countries/countries_name_iso.txt', 'r+')
 
-	log_file = open('/home/ubuntu/temp/logs/countries_name_in_ch_titles_%s.txt' % app.title, 'w')
-	countries_name_in_ch_titles_file = File(log_file)
-
 	# Spanish storefront
 	if storefront_id == 143454:
 		country_name = 'Spain'
@@ -202,14 +199,16 @@ def detect_other_countries_name_in_title(app, countries_file, myFile, storefront
 		country_iso3 = 'USA'
 		
 	found = False
+	
+	log_file = open('/home/ubuntu/temp/logs/countries_name_in_ch_titles_%s.txt' % app.title, 'w')
 		
 	# Loop country names
 	for line in countries_file:
 		
-		if line != country_name and line != country_iso2 and line != country_iso3 and line in app.title:
-	
+		if (line != country_name and line != country_iso2 and line != country_iso3) and (line in app.title or line in app.description):
+			
+			countries_name_in_ch_titles_file = File(log_file)
 			countries_name_in_ch_titles_file.write('%s in %s app. ID:%d' % (line, app.title, app.app_id))
-			countries_name_in_ch_titles_file.close()
 			
 			found = True
 			break
@@ -217,8 +216,12 @@ def detect_other_countries_name_in_title(app, countries_file, myFile, storefront
 	# If any other country name found in title, check if in description or title current country name appears.
 	if found:
 		if (country_name in app.description) or (country_iso2 in app.description) or (country_iso3 in app.description) or (country_name in app.title) or (country_iso2 in app.title) or (country_iso3 in app.title):
+			countries_name_in_ch_titles_file.write('Found %s in title or description. OK' % country_name)
+			countries_name_in_ch_titles_file.close()
 			return False
 		else:
+			countries_name_in_ch_titles_file.write('Not found %s in title or description. NOT SAVED' % country_name)
+			countries_name_in_ch_titles_file.close()
 			return True
 			
 	else:
