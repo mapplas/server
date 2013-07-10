@@ -271,7 +271,7 @@ class GenreApp(models.Model):
     	unique_together = ('genre_id', 'app_id')
 
     def __str__(self):
-        return self.app_id + ' - ' + self.genre_id
+        return '%d - %s' % (self.app_id, self.genre_id)
 
 
 class Ranking(models.Model):
@@ -324,7 +324,7 @@ class CathegoryRelationMatrix(models.Model):
 	objects = models.GeoManager()
 	
 	def __str__(self):
-		return genre_id.name + ' - ' + mapplasCathegories_id.name
+		return self.genre.name + ' - ' + self.mapplas_cathegories.name
 		
 	
 class ChainCathegory(models.Model):
@@ -334,7 +334,7 @@ class ChainCathegory(models.Model):
 	objects = models.GeoManager()
 	
 	def __str__(self):
-		return entity.name + ' - ' + mapplasCathegories_id.name
+		return self.entity.name + ' - ' + self.mapplas_cathegories.name
 		
 
 class UserAppStoreInteraction(models.Model):

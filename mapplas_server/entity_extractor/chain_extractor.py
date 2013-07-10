@@ -133,6 +133,11 @@ def check_apps(apps, chain, chain_cathegories, storefront_id, myFile):
 						except Geometry.DoesNotExist:	
 							
 							geometry.polygon_id = polygon.id	
+							
+							# Check if words like official or oficial appears in title
+							if check_if_is_official_app(app.title, storefront_id):
+								geometry.ranking = 716141	
+							
 							geometry.save()
 							
 	# 						print('App ' + app.title)
@@ -148,7 +153,12 @@ def check_apps(apps, chain, chain_cathegories, storefront_id, myFile):
 						
 						polygon.save()
 						
-						geometry.polygon_id = polygon.id	
+						geometry.polygon_id = polygon.id
+						
+						# Check if words like official or oficial appears in title
+						if check_if_is_official_app(app.title, storefront_id):
+							geometry.ranking = 716141	
+												
 						geometry.save()
 					
 	# 					print('Created polygon for chain ' + chain.name1)
@@ -204,8 +214,10 @@ def detect_other_countries_name_in_title(app, countries_file, myFile, storefront
 		
 	# Loop country names
 	for line in countries_file:
-		
-		if (line != country_name and line != country_iso2 and line != country_iso3) and (line in app.title or line in app.description):
+	
+		regex = r'\b%s\b' % line
+				
+		if (line != country_name and line != country_iso2 and line != country_iso3) and (re.search(regex, app.title) or re.search(regex, app.description)):
 			
 			countries_name_in_ch_titles_file = File(log_file)
 			countries_name_in_ch_titles_file.write('%s in %s app. ID:%d' % (line, app.title, app.app_id))
@@ -215,7 +227,12 @@ def detect_other_countries_name_in_title(app, countries_file, myFile, storefront
 			
 	# If any other country name found in title, check if in description or title current country name appears.
 	if found:
-		if (country_name in app.description) or (country_iso2 in app.description) or (country_iso3 in app.description) or (country_name in app.title) or (country_iso2 in app.title) or (country_iso3 in app.title):
+		
+		regex_name = r'\b%s\b' % country_name
+		regex_iso2 = r'\b%s\b' % country_iso2
+		regex_iso3 = r'\b%s\b' % country_iso3
+	
+		if (re.search(regex_name, app.description) or re.search(regex_iso2, app.description) or re.search(regex_iso3, app.description) or re.search(regex_name, app.title) or re.search(regex_iso2, app.title) or re.search(regex_iso3, app.title)):
 			countries_name_in_ch_titles_file.write('Found %s in title or description. OK' % country_name)
 			countries_name_in_ch_titles_file.close()
 			return False
@@ -240,5 +257,22 @@ def check_app_detail_description_is_given_country(app_detail_description, storef
 	
 	if language_to_check == lang_detector.get_language(app_detail_description[:200]):
 		return True		
+	else:
+		return False
+		
+		
+'''
+Check if in title strings 'official' and 'oficial' appears
+'''
+def check_if_is_official_app(title, storefront_id):
+
+	str_official = 'official'
+	if storefront_id == 143454:
+		str_official = 'oficial'
+	
+	regex = r'\b%s\b' % str_official
+	
+	if re.search(regex, title):
+		return True
 	else:
 		return False
