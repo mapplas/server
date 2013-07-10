@@ -1,5 +1,7 @@
 # -*- encoding: utf-8 -*-
-from rest_api.models import Application, UserPinnedApps, UserBlockedApps, UserSharedApps, Geometry, Polygon, Ranking
+
+from rest_api.models import Application, UserPinnedApps, UserBlockedApps, UserSharedApps, Geometry, Polygon, Ranking, GenreApp
+from entity_extractor.models import Entities
 
 '''
 Generates a ranking value for each geometry
@@ -7,18 +9,32 @@ Generates a ranking value for each geometry
 If overwrite = Yes, all geometries ranking are recalculed
 '''
 def generate_ranking_for_geometries(overwrite):
-
+	
+	#
 	# Constants
+	#
 	alpha_c = 1
 	beta_c = 1
 	delta_c = 1
 	
+	#
 	ranking_max_value = 1002
 	
+	#
 	pinned_apps_total_count = UserPinnedApps.objects.all().count()
 	blocked_apps_total_count = UserBlockedApps.objects.all().count()
 	shared_apps_total_count = UserSharedApps.objects.all().count()
 	pin_block_share_total_relation = pinned_apps_total_count - blocked_apps_total_count + (2 * shared_apps_total_count)
+	
+	#
+	food_and_drink_genre_id = 6023
+	travel_genre_id = 6003
+	navigation_genre_id = 6010
+	reference_genre_id = 6006
+	education_genre_id = 6017
+	
+	appstore_main_genre_ids = [food_and_drink_genre_id, travel_genre_id, navigation_genre_id, reference_genre_id, education_genre_id]
+	
 	
 	# Overwrite previous generated geometries or not
 	if overwrite:
@@ -42,6 +58,12 @@ def generate_ranking_for_geometries(overwrite):
 		
 		# Popularity ranking param
 		popularity_parameter = get_popularity_parameter_for_geometry(geometry, pin_block_share_total_relation)
+		
+		
+		# Food & Drink | Travel | Navigation | Reference | Education genres rank better
+		if is_geometry_app_genre_in_main_appstore_genres(geometry, appstore_main_genre_ids):
+			# Add more ranking
+		
 			
 		#
 		# Ranking calculation
@@ -116,3 +138,19 @@ def get_popularity_parameter_for_geometry(geometry, pin_block_share_total_relati
 		pin_block_share_relation_parameter = pin_block_share_total_relation / divisor
 		
 	return pin_block_share_relation_parameter
+	
+	
+'''
+CALCULATES BETTER RANK FOR APPS THAT MATCH Food & Drink | Travel | Navigation | Reference | Education GENRES
+'''
+def is_geometry_app_genre_in_main_appstore_genres(geometry, appstore_main_genre_ids):
+	
+	# Get app genre in appstore
+	genre_app = GenreApp.objects.get(app_id=geometry.app_id, is_primary=True)
+	
+	# If geometry related app genre is in previous array, increment ranking	
+	if genre_app.genre_id in appstore_main_genre_ids:
+		return True
+	else:
+		return False
+	
