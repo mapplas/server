@@ -60,10 +60,14 @@ def generate_ranking_for_geometries(overwrite):
 		popularity_parameter = get_popularity_parameter_for_geometry(geometry, pin_block_share_total_relation)
 		
 		
-		# Food & Drink | Travel | Navigation | Reference | Education genres rank better
+		# Food & Drink | Travel | Navigation | Reference | Education genres ranks better
 		if is_geometry_app_genre_in_main_appstore_genres(geometry, appstore_main_genre_ids):
 			# Add more ranking
+			
 		
+		# Oficial string match in app title ranks better
+		if geometry_contains_official_string_in_app_title(geometry):
+			# Add more ranking
 			
 		#
 		# Ranking calculation
@@ -154,3 +158,16 @@ def is_geometry_app_genre_in_main_appstore_genres(geometry, appstore_main_genre_
 	else:
 		return False
 	
+
+'''
+CALCULATES BETTER RANK FOR APPS THAT MATCH OFFICIAL OR OFICIAL STRING IN APPLICATION TITLE
+
+When extracting app with extractor algorithms, if 'official' or 'oficial' string was found, 716141 points were added to ranking.
+
+'''
+def geometry_contains_official_string_in_app_title(geometry):
+	
+	if geometry.ranking == 716141:
+		return True
+	else:
+		return False
