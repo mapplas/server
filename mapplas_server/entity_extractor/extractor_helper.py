@@ -76,7 +76,12 @@ def check_apps(app_details_for_entity, entity, entity_type, app_geometry_save_di
 		
 								app_geometry_save_dict[app.app_id] = True 
 											
-								geometry.polygon_id = polygon.id	
+								geometry.polygon_id = polygon.id
+								
+								# Check if words like official or oficial appears in title
+								if check_if_is_official_app(app.title, storefront_id):
+									geometry.ranking = 716141
+								
 								geometry.save()
 								
 								print('App ' + app.title)
@@ -125,7 +130,12 @@ def check_apps(app_details_for_entity, entity, entity_type, app_geometry_save_di
 	
 							app_geometry_save_dict[app.app_id] = True 
 										
-							geometry.polygon_id = polygon.id	
+							geometry.polygon_id = polygon.id
+							
+							# Check if words like official or oficial appears in title
+							if check_if_is_official_app(app.title, storefront_id):
+								geometry.ranking = 716141
+							
 							geometry.save()
 							
 							print('App ' + app.title)
@@ -197,7 +207,12 @@ def check_city_apps(apps, entity, entity_type, app_geometry_save_dict, name_to_s
 			
 						if polygon:
 						
-							geometry.polygon_id = polygon.id	
+							geometry.polygon_id = polygon.id
+							
+							# Check if words like official or oficial appears in title
+							if check_if_is_official_app(app.title, storefront_id):
+								geometry.ranking = 716141
+								
 							geometry.save()
 														
 							print('App ' + app.title)
@@ -237,3 +252,20 @@ def check_more_than_x_cities(text, name_to_search, subs):
 			
 		
 	return matches > max_cities_number_in_description
+
+
+'''
+Check if in title strings 'official' and 'oficial' appears
+'''
+def check_if_is_official_app(title, storefront_id):
+
+	str_official = 'official'
+	if storefront_id == 143454:
+		str_official = 'oficial'
+	
+	regex = r'\b%s\b' % str_official
+	
+	if re.search(regex, title):
+		return True
+	else:
+		return False

@@ -133,6 +133,11 @@ def check_apps(apps, chain, chain_cathegories, storefront_id, myFile):
 						except Geometry.DoesNotExist:	
 							
 							geometry.polygon_id = polygon.id	
+							
+							# Check if words like official or oficial appears in title
+							if check_if_is_official_app(app.title, storefront_id):
+								geometry.ranking = 716141	
+							
 							geometry.save()
 							
 	# 						print('App ' + app.title)
@@ -148,7 +153,12 @@ def check_apps(apps, chain, chain_cathegories, storefront_id, myFile):
 						
 						polygon.save()
 						
-						geometry.polygon_id = polygon.id	
+						geometry.polygon_id = polygon.id
+						
+						# Check if words like official or oficial appears in title
+						if check_if_is_official_app(app.title, storefront_id):
+							geometry.ranking = 716141	
+												
 						geometry.save()
 					
 	# 					print('Created polygon for chain ' + chain.name1)
@@ -240,5 +250,22 @@ def check_app_detail_description_is_given_country(app_detail_description, storef
 	
 	if language_to_check == lang_detector.get_language(app_detail_description[:200]):
 		return True		
+	else:
+		return False
+		
+		
+'''
+Check if in title strings 'official' and 'oficial' appears
+'''
+def check_if_is_official_app(title, storefront_id):
+
+	str_official = 'official'
+	if storefront_id == 143454:
+		str_official = 'oficial'
+	
+	regex = r'\b%s\b' % str_official
+	
+	if re.search(regex, title):
+		return True
 	else:
 		return False
