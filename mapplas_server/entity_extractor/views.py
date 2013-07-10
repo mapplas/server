@@ -20,7 +20,7 @@ def find_geonames_in_apps_for_capital_cities():
 	entity_type = 'CC'
 	
 	cities = Entities.objects.filter(region_type_id=entity_type)
-	cities = cities[26:52]
+	#cities = cities[26:52]
 	
 	# Get cities gazetteer
 	cities_file = open('/home/ubuntu/temp/cities/cities.txt', 'r')

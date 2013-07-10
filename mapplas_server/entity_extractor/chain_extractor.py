@@ -116,54 +116,45 @@ def check_apps(apps, chain, chain_cathegories, storefront_id, myFile):
 			
 			if len(common_cathegories) > 0:
 			
-				# Filter title does not contain any other state name or ISO
-				# Open countries name and iso file
-				countries_file = open('/home/ubuntu/temp/countries/countries_name_iso.txt', 'r+')
-			
-				# Create log file for countries in title searches
-				log_file = open('/home/ubuntu/temp/logs/countries_name_in_ch_titles.txt', 'w')
-				countries_name_in_ch_titles_file = File(log_file)
+				# Detect other countries name in title				
+				if not detect_other_countries_name_in_title(app, countries_name_in_ch_titles_file, storefront_id):
 				
-				detect_other_countries_name_in_title(app, countries_file, countries_name_in_ch_titles_file, storefront_id)
-				countries_name_in_ch_titles_file.close()
-				
-				
-				# Get current polygon
-				try:
-					polygon = Polygon.objects.get(entity_id=chain.id)
-					
-					# Avoid duplicating geometries. If geometry exists for same app, storefront and polygon, continue
+					# Get current polygon
 					try:
-						geometry = Geometry.objects.get(app_id=app.app_id, storefront_id=storefront_id, polygon_id=polygon.id)
-# 						print('Duplicated app!!! ' + app.title)
-						myFile.write('Duplicated app!!! %s \n' % app.title.encode('utf-8'))
-						continue
+						polygon = Polygon.objects.get(entity_id=chain.id)
 						
-					except Geometry.DoesNotExist:	
+						# Avoid duplicating geometries. If geometry exists for same app, storefront and polygon, continue
+						try:
+							geometry = Geometry.objects.get(app_id=app.app_id, storefront_id=storefront_id, polygon_id=polygon.id)
+	# 						print('Duplicated app!!! ' + app.title)
+							myFile.write('Duplicated app!!! %s \n' % app.title.encode('utf-8'))
+							continue
+							
+						except Geometry.DoesNotExist:	
+							
+							geometry.polygon_id = polygon.id	
+							geometry.save()
+							
+	# 						print('App ' + app.title)
+							myFile.write('App %s \n' % app.title.encode('utf-8'))
+						
+					except Polygon.DoesNotExist:
+						
+						polygon = Polygon()
+						polygon.polygon = chain.mpoly
+						polygon.entity_id = chain.id
+						polygon.origin = 'CH'
+						polygon.name = chain.name1
+						
+						polygon.save()
 						
 						geometry.polygon_id = polygon.id	
 						geometry.save()
-						
-# 						print('App ' + app.title)
-						myFile.write('App %s \n' % app.title.encode('utf-8'))
 					
-				except Polygon.DoesNotExist:
-					
-					polygon = Polygon()
-					polygon.polygon = chain.mpoly
-					polygon.entity_id = chain.id
-					polygon.origin = 'CH'
-					polygon.name = chain.name1
-					
-					polygon.save()
-					
-					geometry.polygon_id = polygon.id	
-					geometry.save()
-				
-# 					print('Created polygon for chain ' + chain.name1)
-# 					print('App ' + app.title)
-					myFile.write('Create polygon for chain %s \n' % chain.name1.encode('utf-8'))
- 					myFile.write('App %s \n' % app.title.encode('utf-8'))
+	# 					print('Created polygon for chain ' + chain.name1)
+	# 					print('App ' + app.title)
+						myFile.write('Create polygon for chain %s \n' % chain.name1.encode('utf-8'))
+	 					myFile.write('App %s \n' % app.title.encode('utf-8'))
 				
 		
 		except AppPrice.DoesNotExist:
@@ -192,7 +183,14 @@ def detect_language_and_return_apps(apps, storefront_id):
 For each app, check if in its title appears any other country name or ISO
 '''
 def detect_other_countries_name_in_title(app, countries_file, myFile, storefront_id):
- 
+
+	# Filter title does not contain any other state name or ISO
+	# Open countries name and iso file
+	countries_file = open('/home/ubuntu/temp/countries/countries_name_iso.txt', 'r+')
+
+	log_file = open('/home/ubuntu/temp/logs/countries_name_in_ch_titles_%s.txt' % app.title, 'w')
+	countries_name_in_ch_titles_file = File(log_file)
+
 	# Spanish storefront
 	if storefront_id == 143454:
 		country_name = 'Spain'
@@ -203,14 +201,29 @@ def detect_other_countries_name_in_title(app, countries_file, myFile, storefront
 		country_iso2 = 'US'
 		country_iso3 = 'USA'
 		
+	found = False
+		
 	# Loop country names
 	for line in countries_file:
 		
 		if line != country_name and line != country_iso2 and line != country_iso3 and line in app.title:
 	
-			myFile.write('%s in %s app. ID:%d' % (line, app.title, app.app_id))
-			continue
-				
+			countries_name_in_ch_titles_file.write('%s in %s app. ID:%d' % (line, app.title, app.app_id))
+			countries_name_in_ch_titles_file.close()
+			
+			found = True
+			break
+			
+	# If any other country name found in title, check if in description or title current country name appears.
+	if found:
+		if (country_name in app.description) or (country_iso2 in app.description) or (country_iso3 in app.description) or (country_name in app.title) or (country_iso2 in app.title) or (country_iso3 in app.title):
+			return False
+		else:
+			return True
+			
+	else:
+		return False
+		
 
 '''
 Checks given string language is spanish
