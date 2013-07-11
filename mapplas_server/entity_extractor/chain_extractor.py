@@ -117,7 +117,7 @@ def check_apps(apps, chain, chain_cathegories, storefront_id, myFile):
 			if len(common_cathegories) > 0:
 			
 				# Detect other countries name in title				
-				if not detect_other_countries_name_in_title(app, countries_name_in_ch_titles_file, storefront_id):
+				if not detect_other_countries_name_in_title(app, storefront_id):
 				
 					# Get current polygon
 					try:
@@ -192,7 +192,7 @@ def detect_language_and_return_apps(apps, storefront_id):
 '''
 For each app, check if in its title appears any other country name or ISO
 '''
-def detect_other_countries_name_in_title(app, countries_file, myFile, storefront_id):
+def detect_other_countries_name_in_title(app, storefront_id):
 
 	# Filter title does not contain any other state name or ISO
 	# Open countries name and iso file
