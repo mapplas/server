@@ -348,3 +348,11 @@ class UserAppStoreInteraction(models.Model):
 	
 	def __str__(self):
 		return self.app.app_name + " - " + self.user.user_id
+		
+class VipDeveloper(models.Model):
+	developer = models.ForeignKey(Developer, on_delete=models.CASCADE)
+	
+	objects = models.GeoManager()
+
+	def __str__(self):
+		return self.app.developer.name

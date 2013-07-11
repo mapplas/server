@@ -1,6 +1,6 @@
 # -*- encoding: utf-8 -*-
 
-from rest_api.models import Application, UserPinnedApps, UserBlockedApps, UserSharedApps, Geometry, Polygon, Ranking, GenreApp
+from rest_api.models import Application, UserPinnedApps, UserBlockedApps, UserSharedApps, Geometry, Polygon, Ranking, GenreApp, VipDeveloper, DeveloperApp
 from entity_extractor.models import Entities
 
 '''
@@ -17,7 +17,8 @@ def generate_ranking_for_geometries(overwrite):
 	beta_c = 1
 	delta_c = 1
 	gamma_c = 1
-	epsilon_c = 2
+	epsilon_c = 1
+	zeta_c = 1
 	
 	#
 	ranking_max_value = 1002
@@ -69,11 +70,15 @@ def generate_ranking_for_geometries(overwrite):
 		# Oficial string match in app title ranks better
 		official_app_parameter = geometry_contains_official_string_in_app_title(geometry)
 
+		
+		# Vip developer check
+		vip_developer_parameter = is_vip_developer(geometry)
+			
 			
 		#
 		# Ranking calculation
 		#
-		ranking =  float(alpha_c * ranking_parameter) + float(beta_c * area_parameter) + float(delta_c * popularity_parameter) + float(gamma_c * main_genres_parameter) + float(epsilon_c * official_app_parameter)
+		ranking =  float(alpha_c * ranking_parameter) + float(beta_c * area_parameter) + float(delta_c * popularity_parameter) + float(gamma_c * main_genres_parameter) + float(epsilon_c * official_app_parameter) + float(zeta_c * vip_developer_parameter)
 
 		geometry.ranking = float(ranking)
 		geometry.save()
@@ -171,4 +176,23 @@ def geometry_contains_official_string_in_app_title(geometry):
 	if geometry.ranking == 716141:
 		return 1
 	else:
+		return 0
+		
+		
+'''
+CHECKS IF APP GEOMETRY DEVELOPER IS VIP OR NOT
+'''
+def is_vip_developer(geometry):
+
+	try:
+		developer_app = DeveloperApp.objects.get(app_id=geometry.app_id)
+		
+		try:
+			VipDeveloper.objects.get(developer_id=developer_app.developer_id)
+			return 1
+		
+		except VipDeveloper.DoesNotExist:
+			return 0
+		
+	except DeveloperApp.DoesNotExist:
 		return 0
