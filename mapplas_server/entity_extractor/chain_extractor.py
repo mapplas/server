@@ -210,7 +210,6 @@ def detect_other_countries_name_in_title(app, storefront_id):
 		
 	found = False
 	
-	log_file = open('/home/ubuntu/temp/logs/countries_name_in_ch_titles_%s.txt' % app.title, 'w')
 		
 	# Loop country names
 	for line in countries_file:
@@ -219,6 +218,8 @@ def detect_other_countries_name_in_title(app, storefront_id):
 				
 		if (line != country_name and line != country_iso2 and line != country_iso3) and (re.search(regex, app.title) or re.search(regex, app.description)):
 			
+			log_file = open('/home/ubuntu/temp/logs/countries_name_in_ch_titles_%d.txt' % app.app_id, 'w')
+
 			countries_name_in_ch_titles_file = File(log_file)
 			countries_name_in_ch_titles_file.write('%s in %s app. ID:%d' % (line, app.title, app.app_id))
 			

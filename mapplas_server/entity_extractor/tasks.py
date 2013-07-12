@@ -21,7 +21,7 @@ def find_chains_in_apps(storefront_country_code):
 	chains = Entities.objects.filter(region_type_id='CH', storefront_id=storefront_id)	
 	
 	step = 100
-	start = 963
+	start = 1140
 	
 	first = True
 	

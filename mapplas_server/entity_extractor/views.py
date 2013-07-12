@@ -13,7 +13,9 @@ from entity_extractor import extractor_helper
 # Main method to create geometry objects for apps in REGIONS, PROVINCE, CITY AND STATES.
 
 '''
-CC --> City/Capital of Province -- Search in name and description -- City max match
+CC --> City/Capital of Province
+P -->> Province / Sub-county
+R --> Region / County
 '''
 def find_geonames_in_apps_for_capital_cities():
 	

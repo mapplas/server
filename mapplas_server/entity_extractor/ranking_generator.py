@@ -3,6 +3,9 @@
 from rest_api.models import Application, UserPinnedApps, UserBlockedApps, UserSharedApps, Geometry, Polygon, Ranking, GenreApp, VipDeveloper, DeveloperApp
 from entity_extractor.models import Entities
 
+# from entity_extractor import ranking_generator
+# ranking_generator.generate_ranking_for_geometries(
+
 '''
 Generates a ranking value for each geometry
 
@@ -50,7 +53,7 @@ def generate_ranking_for_geometries(overwrite):
 	for geometry in geometries:
 	
 		# Appstore ranking param
-		ranking = get_ranking_parameter_for_geometry(geometry)
+		ranking = get_ranking_parameter_for_geometry(geometry, ranking_max_value)
 		ranking_parameter = float(1 / ranking)
 
 
@@ -83,7 +86,7 @@ def generate_ranking_for_geometries(overwrite):
 		geometry.ranking = float(ranking)
 		geometry.save()
 		
-		print('******** %f - %f - %f' % (float(alpha_c * ranking_parameter), float(beta_c * area_parameter), float(delta_c * pin_block_share_relation_parameter)))
+		print('******** %f - %f - %f' % (float(alpha_c * ranking_parameter), float(beta_c * area_parameter), float(delta_c * popularity_parameter)))
 		app = Application.objects.get(pk=geometry.app_id)
 		print('%f for app %s' % (ranking, app.app_name.encode('utf-8')))
 		
@@ -91,7 +94,7 @@ def generate_ranking_for_geometries(overwrite):
 '''
 CALCULATES RANKING FIRST VALUE FROM APP STORE RANKING FOR APPLICATION
 '''		
-def get_ranking_parameter_for_geometry(geometry):
+def get_ranking_parameter_for_geometry(geometry, ranking_max_value):
 
 	# Ranking calculator
 	rankings_for_app = Ranking.objects.filter(app_id=geometry.app_id).values_list('app_rank', flat=True)
