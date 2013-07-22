@@ -62,7 +62,7 @@ If matches more than a number, if all are smaller than current year and bigger t
 '''
 def is_valid_title_checking_years(title):
 
-	2008_year = 2008
+	year_2008 = 2008
 	current_year = date.today().year
 	
 	pattern = re.compile('(\d{4})+')
@@ -74,7 +74,7 @@ def is_valid_title_checking_years(title):
 	
 		# One match
 		if number_of_matches == 1:
-			if int(matches[0]) >= 2008_year and int(matches[0]) < int(current_year):
+			if int(matches[0]) >= year_2008 and int(matches[0]) < int(current_year):
 				return False
 			else:
 				return True
@@ -83,7 +83,7 @@ def is_valid_title_checking_years(title):
 		else:
 		
 		 	for match in matches:
-		 		if int(matches[0]) >= 2008_year and int(match) >= int(current_year):
+		 		if int(matches[0]) >= year_2008 and int(match) >= int(current_year):
 		 			return True
 		 	
 		 	return False

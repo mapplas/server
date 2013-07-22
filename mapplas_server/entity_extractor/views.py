@@ -16,13 +16,18 @@ from entity_extractor import extractor_helper
 CC --> City/Capital of Province
 P -->> Province / Sub-county
 R --> Region / County
+
+Storefront lang code:
+	ESP - Spain
+	USA - United States of America
 '''
-def find_geonames_in_apps_for_capital_cities():
-	
-	entity_type = 'CC'
-	
-	cities = Entities.objects.filter(region_type_id=entity_type)
-	#cities = cities[26:52]
+def find_geonames_for_all_region_entities_for_storefront(storefront_country_code):
+
+	storefront_id = Storefront.objects.get(country_code=storefront_country_code).storefront_id
+
+	regions = Entities.objects.filter(region_type_id='R', storefront_id=storefront_id)
+	provinces = Entities.objects.filter(region_type_id='P', storefront_id=storefront_id)
+	cities = Entities.objects.filter(region_type_id='CC', storefront_id=storefront_id)
 	
 	# Get cities gazetteer
 	cities_file = open('/home/ubuntu/temp/cities/cities.txt', 'r')
@@ -31,127 +36,56 @@ def find_geonames_in_apps_for_capital_cities():
 	
 	subs = re.compile("|".join(lines))
 	
-	for city in cities:
+	find_for(regions, lines, subs)
+	find_for(provinces, lines, subs)
+	find_for(cities, lines, subs)
 
-		print(city.name1)
+
+def find_for(entities, lines, subs):
+	
+	for entity in entities:
+	
+		if not entity_parent_names_equal(entity.parent, entity.name1):
+
+		print(entity.name1)
 		print('************')
 	
 		#Finds exact match of string
-		regex = r'^.*(\m%s\M).*$' % city.name1
+		regex = r'^.*(\m%s\M).*$' % entity.name1
 		
 		app_details_with_regex_title = AppDetails.objects.filter(title__iregex=regex)
 		app_details_with_regex_description = AppDetails.objects.filter(description__iregex=regex)
-		extractor_helper.check_apps_for_city_match(app_details_with_regex_title, app_details_with_regex_description, city, entity_type, city.name1, subs)		
 		
-		if city.name2:
+		extractor_helper.check_apps_for_city_match(app_details_with_regex_title, app_details_with_regex_description, entity, entity.name1, subs)		
+		
+		if entity.name2 and not entity_parent_names_equal(entity.parent, entity.name2):
 					
-			print(city.name2)
+			print(entity.name2)
 			print('************')
 			
-			regex = r'^.*(\m%s\M).*$' % city.name2
+			regex = r'^.*(\m%s\M).*$' % entity.name2
 			
 			app_details_with_regex_translated_title = AppDetails.objects.filter(title__iregex=regex)
 			app_details_with_regex_translated_description = AppDetails.objects.filter(description__iregex=regex)			
-			extractor_helper.check_apps_for_city_match(app_details_with_regex_translated_title, app_details_with_regex_translated_description, city, entity_type, city.name2, subs)
+			
+			extractor_helper.check_apps_for_city_match(app_details_with_regex_translated_title, app_details_with_regex_translated_description, entity, entity.name2, subs)
 
 
 '''
-P --> Province -- Search in name and description
-
-Storefront lang code:
-	ESP - Spain
-	USA - United States of America
+Checks if entity's parent has same name
 '''
-def find_geonames_in_apps_for_province_and_storefront(storefront_country_code):	
-	entity_type = 'P'
-	storefront_id = Storefront.objects.get(country_code=storefront_country_code).storefront_id
+def entity_parent_names_equal(parent_id, name):
 
-	provinces = Entities.objects.filter(region_type_id=entity_type, storefront_id=storefront_id)
-	#provinces = provinces[26:52]
-	app_geometry_save_dict = {}
+	parent = Entities.objects.get(pk=parent_id)
 	
-	for province in provinces:
+	if parent.name1 and (parent.name1 == name or parent.name2 == name):
+		print('%s entitys parent has SAME name')
+		return True
+	else:
+		print('%s entitys parent has DIFFERENT name')
+		return False
 
-		print(province.name1)
-		print('************')
-	
-		#Finds exact match of string
-		regex = r'^.*(\m%s\M).*$' % province.name1
-		
-		app_details_with_regex_title = AppDetails.objects.filter(title__iregex=regex)
-		extractor_helper.check_apps(app_details_with_regex_title, province, entity_type, app_geometry_save_dict, True)
 
-		# Do not search for EEUU entities in description
-		if storefront_country_code == 'ESP':
-			app_details_with_regex_description = AppDetails.objects.filter(description__iregex=regex)
-			extractor_helper.check_apps(app_details_with_regex_description, province, entity_type, app_geometry_save_dict, False)
-
-		
-		if province.name2:
-					
-			print(province.name2)
-			print('************')
-			
-			regex = r'^.*(\m%s\M).*$' % province.name2
-			
-			app_details_with_regex_translated_title = AppDetails.objects.filter(title__iregex=regex)
-			extractor_helper.check_apps(app_details_with_regex_translated_title, province, entity_type, app_geometry_save_dict, True)
-			
-			# Do not search for EEUU entities in description
-			if storefront_country_code == 'ESP':
-				app_details_with_regex_translated_description = AppDetails.objects.filter(description__iregex=regex)
-				extractor_helper.check_apps(app_details_with_regex_translated_description, province, entity_type, app_geometry_save_dict, False)
-			
-
-'''
-R --> Region -- Search in name and description
-
-Storefront lang code:
-	ESP - Spain
-	USA - United States of America
-'''
-def find_geonames_in_apps_for_region_and_storefront(storefront_country_code):
-	entity_type = 'R'
-	storefront_id = Storefront.objects.get(country_code=storefront_country_code).storefront_id
-
-	regions = Entities.objects.filter(region_type_id=entity_type, storefront_id=storefront_id)
-	
-	app_geometry_save_dict = {}
-	
-	for region in regions:
-
-		print(region.name1)
-		print('************')
-	
-		#Finds exact match of string
-		regex = r'^.*(\m%s\M).*$' % region.name1
-		
-		app_details_with_regex_title = AppDetails.objects.filter(title__iregex=regex)
-		extractor_helper.check_apps(app_details_with_regex_title, region, entity_type, app_geometry_save_dict, True)
-
-		# Do not search for EEUU entities in description		
-		if storefront_country_code == 'ESP':
-			app_details_with_regex_description = AppDetails.objects.filter(description__iregex=regex)
-			extractor_helper.check_apps(app_details_with_regex_description, region, entity_type, app_geometry_save_dict, False)
-		
-		
-		if region.name2:
-					
-			print(region.name2)
-			print('************')
-			
-			regex = r'^.*(\m%s\M).*$' % region.name2
-			
-			app_details_with_regex_translated_title = AppDetails.objects.filter(title__iregex=regex)
-			extractor_helper.check_apps(app_details_with_regex_translated_title, region, entity_type, app_geometry_save_dict, True)
-
-			# Do not search for EEUU entities in description
-			if storefront_country_code == 'ESP':
-				app_details_with_regex_translated_description = AppDetails.objects.filter(description__iregex=regex)
-				extractor_helper.check_apps(app_details_with_regex_translated_description, region, entity_type, app_geometry_save_dict, False)
-
-			
-			
 '''
 S --> State -- Only searched in name -- Do not search
 '''

@@ -136,10 +136,15 @@ Storefront country code:
 	USA - United States of America
 '''
 #	from entity_extractor import chain_generator
-#	chain_generator.populate_chain_category_table_from_txt('USA')
+#	chain_generator.populate_chain_category_table_from_txt('')
 def populate_chain_category_table_from_txt(storefront_country_code):
 
 	csv_file = codecs.open('/home/ubuntu/temp/category_places_%s.txt' % storefront_country_code.lower(), encoding='latin-1')
+	
+	# Spain
+	parent_id = 1
+	if storefront_country_code == 'USA':
+		parent_id = 13443
 	
 	i = 0
 	
@@ -151,7 +156,7 @@ def populate_chain_category_table_from_txt(storefront_country_code):
 		mapplas_cathegory = data_splitted[1]
 		
 		try:
-			entity = Entities.objects.get(name1=entity_name, region_type='CH')
+			entity = Entities.objects.get(name1=entity_name, region_type='CH', parent=parent_id)
 			
 			chain_cathegory = ChainCathegory()
 			chain_cathegory.entity_id = entity.id

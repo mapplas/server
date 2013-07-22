@@ -33,7 +33,7 @@ def check_app_detail_description_is_given_country_language(app_detail_descriptio
 Check if apps exist for given region in storefront.
 If yes, created a geometry for that app in given region.
 '''
-def check_apps(app_details_for_entity, entity, entity_type, app_geometry_save_dict, checking_title):
+def check_apps(app_details_for_entity, entity, app_geometry_save_dict, checking_title):
 
 	storefront_id = entity.storefront_id
 
@@ -56,7 +56,7 @@ def check_apps(app_details_for_entity, entity, entity_type, app_geometry_save_di
 							
 								geometry.app_id = app.app_id
 								geometry.storefront_id = storefront_id
-								geometry.origin = entity_type
+								geometry.origin = entity.entity_type
 								
 						except Application.DoesNotExist:
 							print('Does not exist application for description')
@@ -110,7 +110,7 @@ def check_apps(app_details_for_entity, entity, entity_type, app_geometry_save_di
 						
 							geometry.app_id = app.app_id
 							geometry.storefront_id = storefront_id
-							geometry.origin = entity_type
+							geometry.origin = entity.entity_type
 							
 					except Application.DoesNotExist:
 						print('Does not exist application for description')
@@ -159,30 +159,32 @@ Check if apps exist for given region in storefront.
 If yes, check if from city gazetteers don't appear more than 3 different cities.
 If no, save it.
 '''
-def check_apps_for_city_match(app_titles_for_entity, app_details_for_entity, entity, entity_type, name_to_search, subs):
+def check_apps_for_city_match(app_titles_for_entity, app_details_for_entity, entity, name_to_search, subs):
 		
 	app_geometry_save_dict = {}
 	
 	# Check app titles
-	app_geometry_save_dict = check_apps(app_titles_for_entity, entity, entity_type, app_geometry_save_dict, True)
+	app_geometry_save_dict = check_apps(app_titles_for_entity, entity, app_geometry_save_dict, True)
 	
 	# Check app descriptions
-	check_city_apps(app_details_for_entity, entity, entity_type, app_geometry_save_dict, name_to_search, subs)
+	# Do not search for EEUU entities (P and R) in description		
+	if not((entity.entity_type == 'R' or entity.entity_type == 'P') and entity.storefront_id = 143441):
+		check_city_apps(app_details_for_entity, entity, app_geometry_save_dict, name_to_search, subs)
 
 
 '''
 Checks apps text.
 '''
-def check_city_apps(apps, entity, entity_type, app_geometry_save_dict, name_to_search, subs):
+def check_city_apps(apps, entity, app_geometry_save_dict, name_to_search, subs):
 
-	storefront_id = get_storefront_id(entity, entity_type)
+	storefront_id = entity.storefront_id
 	
 	for app in apps:
 	
 		# Checks in dictionary if for that app is any geometry saved before (when checking title)
 		if not app_geometry_save_dict.has_key(app.app_id):
 	
-			if check_app_detail_description_is_spanish(app.description):
+			if check_app_detail_description_is_given_country_language(app.description, entity):
 			
 				# Checks if they are not more than x cities in description
 				if not check_more_than_x_cities(app.description, name_to_search, subs):
@@ -197,7 +199,7 @@ def check_city_apps(apps, entity, entity_type, app_geometry_save_dict, name_to_s
 							
 								geometry.app_id = app.app_id
 								geometry.storefront_id = storefront_id
-								geometry.origin = entity_type
+								geometry.origin = entity.entity_type
 								
 						except Application.DoesNotExist:
 							print('Does not exist application for description')

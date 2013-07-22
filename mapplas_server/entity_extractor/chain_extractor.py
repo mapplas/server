@@ -136,7 +136,8 @@ def check_apps(apps, chain, chain_cathegories, storefront_id, myFile):
 							
 							# Check if words like official or oficial appears in title
 							if check_if_is_official_app(app.title, storefront_id):
-								geometry.ranking = 716141	
+								geometry.ranking = 716141
+								myFile.write('Searched official or oficial string in title \n')	
 							
 							geometry.save()
 							
@@ -158,7 +159,8 @@ def check_apps(apps, chain, chain_cathegories, storefront_id, myFile):
 						# Check if words like official or oficial appears in title
 						if check_if_is_official_app(app.title, storefront_id):
 							geometry.ranking = 716141	
-												
+							myFile.write('Searched official or oficial string in title \n')	
+							
 						geometry.save()
 					
 	# 					print('Created polygon for chain ' + chain.name1)
