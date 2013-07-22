@@ -16,12 +16,17 @@ Finds chain name in application titles and assigns that polygon to app
 '''
 @task
 def find_chains_in_apps(storefront_country_code):
+
+	if storefront_country_code == 'USA':
+		parent_id = 13443
+	else:
+		parent_id = 1
 	
 	storefront_id = Storefront.objects.get(country_code=storefront_country_code).storefront_id
-	chains = Entities.objects.filter(region_type_id='CH', storefront_id=storefront_id)	
+	chains = Entities.objects.filter(region_type_id='CH', storefront_id=storefront_id, parent=parent_id)	
 	
 	step = 100
-	start = 963
+	start = 0
 	
 	first = True
 	
