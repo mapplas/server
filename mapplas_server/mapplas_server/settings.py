@@ -21,7 +21,7 @@ DATABASES = {
 
         'USER': 'postgres',
         'PASSWORD': 'admin',
-        'HOST': '54.217.249.103',   						# Empty for localhost through domain sockets or '127.0.0.1' for localhost through TCP.
+        'HOST': '54.228.23.109',   						# Empty for localhost through domain sockets or '127.0.0.1' for localhost through TCP.
         'PORT': '',                                     # Set to empty string for default.
     }
 }
