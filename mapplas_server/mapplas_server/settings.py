@@ -131,9 +131,41 @@ TEMPLATE_DIRS = (
 )
 
 REST_FRAMEWORK = {
+
     'DEFAULT_PERMISSION_CLASSES': (
         'rest_framework.permissions.AllowAny',
+    ),
+    
+    'DEFAULT_AUTHENTICATION_CLASSES': (
+        'rest_framework.authentication.BasicAuthentication',
+        'rest_framework.authentication.SessionAuthentication',
     )
+}
+
+CACHES = {
+	
+	'default': {
+        'BACKEND': 'django.core.cache.backends.locmem.LocMemCache',
+    },
+    
+	'throttle-anon': {
+        'BACKEND': 'django.core.cache.backends.db.DatabaseCache',
+        'LOCATION': 'cache_api_request_anon',
+        'TIMEOUT' : 'None',
+        'OPTIONS': {
+            'MAX_ENTRIES': 10000000,
+        },
+    },
+    
+    'throttle-user': {
+        'BACKEND': 'django.core.cache.backends.db.DatabaseCache',
+        'LOCATION': 'cache_api_request_user',
+        'TIMEOUT' : 'None',
+        'OPTIONS': {
+            'MAX_ENTRIES': 10000,
+        },
+    },
+  
 }
 
 INSTALLED_APPS = (
@@ -154,6 +186,7 @@ INSTALLED_APPS = (
     'entity_extractor',
     'djcelery',
     'usa_multipolygons',
+    'rest_framework.authtoken',
 )
 
 # A sample logging configuration. The only tangible logging

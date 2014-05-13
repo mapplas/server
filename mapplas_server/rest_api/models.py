@@ -15,18 +15,16 @@ class BigIntegerField(IntegerField):
 
 
 
-# class User(models.Model):
-#     # If no primary key is set, Django creates it automatically.
-#     #user_id = models.AutoField(primary_key=True)
-#     imei = models.CharField(max_length=32)
-#     tel = models.CharField(max_length=32)
-#     created = BigIntegerField()
-#     updated = BigIntegerField()
-# 
-#     objects = models.GeoManager()
-# 
-#     def __str__(self):
-#         return self.imei
+class User(models.Model):
+    # If no primary key is set, Django creates it automatically.
+    id = models.AutoField(primary_key=True)
+    created = BigIntegerField()
+    updated = BigIntegerField()
+
+    objects = models.GeoManager()
+
+    def __str__(self):
+        return "%s" % self.id
 
 
 # class UserInstalledApps(models.Model):
