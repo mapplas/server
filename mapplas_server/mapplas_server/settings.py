@@ -1,7 +1,7 @@
 # Django settings for mapplas_server project.
 # -*- coding: utf8 -*-
 import djcelery
-import urllib
+import urllib, os
 
 DEBUG = True
 TEMPLATE_DEBUG = DEBUG
@@ -21,8 +21,8 @@ DATABASES = {
 
         'USER': 'postgres',
         'PASSWORD': 'admin',
-        'HOST': '54.228.23.109',   						# Empty for localhost through domain sockets or '127.0.0.1' for localhost through TCP.
-        'PORT': '',                                     # Set to empty string for default.
+        'HOST': '46.137.14.165',   						# Empty for localhost through domain sockets or '127.0.0.1' for localhost through TCP.
+        'PORT': '',                                     	# Set to empty string for default.
     }
 }
 
@@ -77,7 +77,7 @@ MEDIA_URL = ''
 # Don't put anything in this directory yourself; store your static files
 # in apps' "static/" subdirectories and in STATICFILES_DIRS.
 # Example: "/var/www/example.com/static/"
-STATIC_ROOT = ''
+STATIC_ROOT = os.path.join(os.path.dirname(__file__), 'static/')
 
 # URL prefix for static files.
 # Example: "http://example.com/static/", "http://static.example.com/"
@@ -109,7 +109,7 @@ TEMPLATE_LOADERS = (
 )
 
 MIDDLEWARE_CLASSES = (
-    #'django.middleware.locale.LocaleMiddleware',
+    'django.middleware.locale.LocaleMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
@@ -188,6 +188,10 @@ INSTALLED_APPS = (
     'usa_multipolygons',
     'rest_framework.authtoken',
 )
+
+#
+# REST FRAMEWORK UBUNTU TOKEN: 9d3a8c04d3fa6d72dfc953aa944878569e1c988f
+#
 
 # A sample logging configuration. The only tangible logging
 # performed by this configuration is to send an email to
