@@ -1,40 +1,40 @@
 # -*- encoding: utf-8 -*-
-from django.contrib.gis.geos import Point
-
-from rest_api.models import Geometry, Polygon, Storefront
+from rest_api.models import Geometry, Storefront, AppPrice
 from entity_extractor.models import Entities
 
 from django.db.models import Q
 
 
-def rank_apps(lat, lon, accuracy):
-
-	point = Point(float(lon), float(lat))
-		
-	# 1º = 111.045km
-	# Area = 1 km, we dont use accuracy now
-	radius = 1 / 111.045
-	my_area = point.buffer(radius)	
+'''
+Returns R and P origin geometries that intersect with user position ordered by ranking
+'''
+def get_rp_geoms(user_area, storefront_id):
 	
-	# Get intersection polygon ids
-	region_polygon_ids = Polygon.objects.filter(Q(origin='CC', polygon__intersects=my_area) | Q(origin='P', polygon__intersects=my_area) | Q(origin='R', polygon__intersects=my_area) | Q(origin='CH', polygon__intersects=my_area)).values_list('id', flat=True)
+	region_polygon_ids = Entities.objects.filter(Q(region_type_id='R', mpoly__intersects=user_area)).values_list('id', flat=True)
+	province_polygon_ids = Entities.objects.filter(Q(region_type_id='P', mpoly__intersects=user_area)).values_list('id', flat=True)
 	
-# 	storefront_id = get_storefront_id_for_point(point)
+	app_ids = Geometry.objects.filter(Q(entity_id__in=(region_polygon_ids | province_polygon_ids))).order_by('-ranking').values_list('app_id', flat=True)
 	
-	# Get geometries for polygons	
-	geometries_ids = Geometry.objects.filter(Q(polygon_id__in=region_polygon_ids)).order_by('-ranking')
-
-	return geometries_ids
+	return AppPrice.objects.filter(app_id__in=app_ids, storefront_id=storefront_id).values_list('app_id', flat=True)
 	
 	
 '''
-From given point, returns storefront that corresponds with it.
+Returns CC origin geometries that intersect with user position ordered by ranking
 '''
-def get_storefront_id_for_point(point):
+def get_cc_geoms(user_area, storefront_id):
 	
-	try: 
-		Entities.objects.get(name1='España', mpoly__intersects=point)
-		return Storefront.objects.get(country_code='ESP')
-		
-	except Entities.DoesNotExist:
-		return Storefront.objects.get(country_code='USA')
+	region_polygon_ids = Entities.objects.filter(Q(region_type_id='CC', mpoly__intersects=user_area)).values_list('id', flat=True)
+	app_ids = Geometry.objects.filter(Q(entity_id__in=region_polygon_ids)).order_by('-ranking').values_list('app_id', flat=True)
+	
+	return AppPrice.objects.filter(app_id__in=app_ids, storefront_id=storefront_id).values_list('app_id', flat=True)
+
+
+'''
+Returns WC origi
+'''
+def get_wc_geoms(user_area, storefront_id):
+	region_polygon_ids = Entities.objects.filter(Q(region_type_id='WC', mpoly__intersects=user_area)).values_list('id', flat=True)
+	
+	app_ids = Geometry.objects.filter(Q(entity_id__in=region_polygon_ids)).order_by('-ranking', 'id').values_list('app_id', flat=True)
+	
+	return AppPrice.objects.filter(app_id__in=app_ids, storefront_id=storefront_id).values_list('app_id', flat=True)

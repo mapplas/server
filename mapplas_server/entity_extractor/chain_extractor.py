@@ -10,7 +10,7 @@ from entity_extractor.models import geonames_all_countries
 from entity_extractor.models import Entities, EntityTypes
 from entity_extractor import lang_detector
 
-from rest_api.models import Application, Storefront, AppPrice, Geometry, AppDetails, Polygon, ChainCathegory, GenreApp, CathegoryRelationMatrix
+from rest_api.models import Application, Storefront, AppPrice, Geometry, AppDetails, GenreApp
 
 # 	Task done in tasks file
 #	from entity_extractor import chain_extractor

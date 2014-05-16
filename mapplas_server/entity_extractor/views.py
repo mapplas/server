@@ -30,7 +30,7 @@ def find_geonames_for_all_region_entities_for_storefront(storefront_country_code
 	cities = Entities.objects.filter(region_type_id='CC', storefront_id=storefront_id)
 	
 	# Get cities gazetteer
-	cities_file = open('/home/ubuntu/temp/cities/cities.txt', 'r')
+	cities_file = open('/home/ubuntu/temp/cities/cities_regions_provinces.txt', 'r')
 	lines = [line.strip().lower() for line in cities_file]
 	cities_file.close()
 	
@@ -78,11 +78,11 @@ def entity_parent_names_equal(parent_id, name):
 
 	parent = Entities.objects.get(pk=parent_id)
 	
-	if parent.name1 and (parent.name1 == name or parent.name2 == name):
-		print('%s entitys parent has SAME name')
+	if parent.name1 == name or parent.name2 == name:
+		print('%s entitys parent has SAME names: %s and %s' % (name, parent.name1, parent.name2))
 		return True
 	else:
-		print('%s entitys parent has DIFFERENT name')
+		print('%s entitys parent has DIFFERENT names: %s and %s' % (name, parent.name1, parent.name2))
 		return False
 
 

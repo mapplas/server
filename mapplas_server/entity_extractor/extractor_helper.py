@@ -12,6 +12,7 @@ from entity_extractor import regex
 from spain_multipolygons.models import SpainRegions
 
 from rest_api.models import Application, Storefront, AppPrice, Geometry, AppDetails, Polygon
+from rest_api import helper
 
 '''
 Checks given string language is spanish
@@ -20,7 +21,7 @@ def check_app_detail_description_is_given_country_language(app_detail_descriptio
 
 	language_to_check = 'english'
 
-	if entity.storefront_id == 143454:
+	if entity.storefront_id == helper.getSpainStorefrontCode():
 		language_to_check = 'spanish'
 	
 	if language_to_check == lang_detector.get_language(app_detail_description[:200]):
@@ -56,7 +57,7 @@ def check_apps(app_details_for_entity, entity, app_geometry_save_dict, checking_
 							
 								geometry.app_id = app.app_id
 								geometry.storefront_id = storefront_id
-								geometry.origin = entity.entity_type
+								geometry.origin = entity.entity_type.identifier
 								
 						except Application.DoesNotExist:
 							print('Does not exist application for description')
@@ -110,7 +111,7 @@ def check_apps(app_details_for_entity, entity, app_geometry_save_dict, checking_
 						
 							geometry.app_id = app.app_id
 							geometry.storefront_id = storefront_id
-							geometry.origin = entity.entity_type
+							geometry.origin = entity.entity_type.identifier
 							
 					except Application.DoesNotExist:
 						print('Does not exist application for description')
@@ -168,7 +169,7 @@ def check_apps_for_city_match(app_titles_for_entity, app_details_for_entity, ent
 	
 	# Check app descriptions
 	# Do not search for EEUU entities (P and R) in description		
-	if not((entity.entity_type == 'R' or entity.entity_type == 'P') and entity.storefront_id = 143441):
+	if not((entity.entity_type.identifier == 'R' or entity.entity_type.identifier == 'P') and entity.storefront_id == helper.getUsaStorefrontId()):
 		check_city_apps(app_details_for_entity, entity, app_geometry_save_dict, name_to_search, subs)
 
 
@@ -185,52 +186,55 @@ def check_city_apps(apps, entity, app_geometry_save_dict, name_to_search, subs):
 		if not app_geometry_save_dict.has_key(app.app_id):
 	
 			if check_app_detail_description_is_given_country_language(app.description, entity):
+				if regex.is_valid_title_checking_years(app.title):
 			
-				# Checks if they are not more than x cities in description
-				if not check_more_than_x_cities(app.description, name_to_search, subs):
-			
-					try:
-						app_price = AppPrice.objects.get(app_id=app.app_id, storefront_id=storefront_id)
-						
-						geometry = Geometry()
-						
-						try:
-							if Application.objects.get(pk=app.app_id):
-							
-								geometry.app_id = app.app_id
-								geometry.storefront_id = storefront_id
-								geometry.origin = entity.entity_type
-								
-						except Application.DoesNotExist:
-							print('Does not exist application for description')
-							continue
-							
-						polygon = Polygon.objects.get(entity_id=entity.id)
-			
-						if polygon:
-						
-							geometry.polygon_id = polygon.id
-							
-							# Check if words like official or oficial appears in title
-							if check_if_is_official_app(app.title, storefront_id):
-								geometry.ranking = 716141
-								
-							geometry.save()
-														
-							print('App ' + app.title)
-							#file_to_write.write('App ' + app.title.encode('utf-8'))
-						else:
-							print('null polygon for region ' + entity.name1)
-							#file_to_write.write('null polygon for region ' + region.encode('utf-8'))
-					
-					except AppPrice.DoesNotExist:
-						# App does not exist for that storefront. Do nothing.
-						print('App ' + app.title + ' does not exist in that storefront')
-						#file_to_write.write('App ' + app.title.encode('utf-8') + ' does not exist in that storefront')
+					# Checks if they are not more than x cities in description
+					if not check_more_than_x_cities(app.description, name_to_search, subs):
 				
+						try:
+							app_price = AppPrice.objects.get(app_id=app.app_id, storefront_id=storefront_id)
+							
+							geometry = Geometry()
+							
+							try:
+								if Application.objects.get(pk=app.app_id):
+								
+									geometry.app_id = app.app_id
+									geometry.storefront_id = storefront_id
+									geometry.origin = entity.entity_type
+									
+							except Application.DoesNotExist:
+								print('Does not exist application for description')
+								continue
+								
+							polygon = Polygon.objects.get(entity_id=entity.id)
+				
+							if polygon:
+							
+								geometry.polygon_id = polygon.id
+								
+								# Check if words like official or oficial appears in title
+								if check_if_is_official_app(app.title, storefront_id):
+									geometry.ranking = 716141
+									
+								geometry.save()
+															
+								print('App ' + app.title)
+								#file_to_write.write('App ' + app.title.encode('utf-8'))
+							else:
+								print('null polygon for region ' + entity.name1)
+								#file_to_write.write('null polygon for region ' + region.encode('utf-8'))
+						
+						except AppPrice.DoesNotExist:
+							# App does not exist for that storefront. Do nothing.
+							print('App ' + app.title + ' does not exist in that storefront')
+							#file_to_write.write('App ' + app.title.encode('utf-8') + ' does not exist in that storefront')
+					
+					else:
+						polygon = Polygon.objects.get(entity_id=entity.id)
+						print('App %s has more than 3 city names in description. App id:%d. Polygon id:%d' % (app.title, app.app_id_appstore, polygon.polygon_id))
 				else:
-					polygon = Polygon.objects.get(entity_id=entity.id)
-					print('App %s has more than 3 city names in description. App id:%d. Polygon id:%d' % (app.title, app.app_id_appstore, polygon.polygon_id))
+					print('Current year data error: %s' % app.title)
 		else:
 			print('Geometry saved in title for app ' + app.title)
 				
@@ -242,17 +246,19 @@ def check_more_than_x_cities(text, name_to_search, subs):
 	max_cities_number_in_description = 3
 	
 	matches = 0
-	
+	match_array = []
+
 	# iterative result
 	for match in re.finditer(subs, text.lower()):
 
-		if match.group(0) != name_to_search.lower():
+		if match.group(0) != name_to_search.lower() and match.group(0) not in match_array:
 			matches = matches + 1
+			match_array.append(match.group(0))
 		
 		if matches > max_cities_number_in_description:
 			break
 			
-		
+# 	print(match_array)	
 	return matches > max_cities_number_in_description
 
 
@@ -262,7 +268,7 @@ Check if in title strings 'official' and 'oficial' appears
 def check_if_is_official_app(title, storefront_id):
 
 	str_official = 'official'
-	if storefront_id == 143454:
+	if storefront_id == helper.getSpainStorefrontId():
 		str_official = 'oficial'
 	
 	regex = r'\b%s\b' % str_official

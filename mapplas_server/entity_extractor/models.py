@@ -1,3 +1,4 @@
+# -*- encoding: utf-8 -*-
 from django.contrib.gis.db import models
 from django.db.models.fields import IntegerField
 
