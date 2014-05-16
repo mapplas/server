@@ -1,3 +1,5 @@
+# -*- encoding: utf-8 -*-
+
 from django.contrib.gis.db import models
 
 from django.db.models.fields import IntegerField
@@ -77,7 +79,7 @@ class Application(models.Model):
 
     objects = models.GeoManager()
 
-    def __str__(self):
+    def __unicode__(self):
         return self.app_name
 
 
@@ -147,7 +149,7 @@ class AppDetails(models.Model):
 		unique_together = ('app_id', 'language_code')
 		
 		
-	def __str__(self):
+	def __unicode__(self):
 		return " - (" + self.language_code + ") " + self.title 
 
 
@@ -158,7 +160,7 @@ class Storefront(models.Model):
 
     objects = models.GeoManager()
 
-    def __str__(self):
+    def __unicode__(self):
         return self.name
 
 
@@ -171,7 +173,7 @@ class Geometry(models.Model):
     
     objects = models.GeoManager()
 
-    def __str__(self):
+    def __unicode__(self):
         return self.app.app_name + ' - ' + self.storefront.name
 
 
@@ -186,7 +188,7 @@ class AppPrice(models.Model):
     class Meta:
     	unique_together = ('app_id', 'storefront_id')
 
-    def __str__(self):
+    def __unicode__(self):
         return self.app_id + ': ' + self.retail_price
 
 
@@ -196,7 +198,7 @@ class DeviceType(models.Model):
 
     objects = models.GeoManager()
 
-    def __str__(self):
+    def __unicode__(self):
         return  self.name
 
 
@@ -206,7 +208,7 @@ class AppDeviceType(models.Model):
 
     objects = models.GeoManager()
 
-    def __str__(self):
+    def __unicode__(self):
         return self.app.app_name + ' - ' + self.device_type.name
 
 
@@ -217,7 +219,7 @@ class Developer(models.Model):
 
     objects = models.GeoManager()
 
-    def __str__(self):
+    def __unicode__(self):
         return self.name
 
 
@@ -230,7 +232,7 @@ class DeveloperApp(models.Model):
     class Meta:
     	unique_together = ('app_id', 'developer_id')
 
-    def __str__(self):
+    def __unicode__(self):
         return '%d - %s' % (self.app_id, self.developer_id)
 
 
@@ -241,7 +243,7 @@ class Genre(models.Model):
 
     objects = models.GeoManager()
 
-    def __str__(self):
+    def __unicode__(self):
         return self.name
 
 
@@ -255,7 +257,7 @@ class GenreApp(models.Model):
     class Meta:
     	unique_together = ('genre_id', 'app_id')
 
-    def __str__(self):
+    def __unicode__(self):
         return '%d - %s' % (self.app_id, self.genre_id)
 
 
@@ -270,7 +272,7 @@ class Ranking(models.Model):
     class Meta:
     	unique_together = ('storefront_id', 'app_id', 'genre_id')
 
-    def __str__(self):
+    def __unicode__(self):
         return self.app_id + ' - Storefront: ' + self.storefront_id + ' - Genre: ' + self.genre_id + '. Ranking: ' + self.app_rank
 
 
@@ -339,5 +341,5 @@ class VipDeveloper(models.Model):
 	
 	objects = models.GeoManager()
 
-	def __str__(self):
+	def __unicode__(self):
 		return self.app.developer.name
