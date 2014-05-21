@@ -74,6 +74,9 @@ class Application(models.Model):
     view_url = models.CharField(max_length=1000)
     company_url = models.CharField(max_length=1000, null=True)
     support_url = models.CharField(max_length=1000)
+    
+    is_web = models.IntegerField(null=True, blank=True)
+    
     created = BigIntegerField()
     updated = BigIntegerField()
 
