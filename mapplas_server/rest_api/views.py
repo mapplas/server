@@ -20,6 +20,8 @@ from rest_api.cache_api import CustomAnonRateThrottle, CustomUserRateThrottle
 from rest_api import helper, application_searcher
 from rest_api.error_enum import AppListSize
 
+from entity_extractor.models import Entities
+
 
 
 ###############
@@ -44,15 +46,12 @@ def api_apps_for_city(request, city_id):
 	
 		parent_entity = Entities.objects.get(parent=entity.parent)
 	
-		app_ids = application_searcher.search_for_polygon(entity, parent_entity, None)
+		app_ids = application_searcher.search_for_polygon(entity, parent_entity)
 		return response_generator.ok_with_message(create_json_from_app_ids(app_ids))
 	
 	else:
 		return response_generator.generic_error("No city match")
-
-	
 			
-
 
 @api_view(['GET'])
 @permission_classes((IsAuthenticated, ))
@@ -63,29 +62,29 @@ def api_apps_for_position(request, lat, lon, accuracy):
 	# We need country data to get details or price correct values.
 
 	response_generator = ResponseGenerator()
-	
+
 	request_made_user = request.user
 	request_made_user_token = request.auth
 	
 	# 	None parameter is user_id
-	app_ids = application_searcher.search(lat, lon, accuracy, None)
+	app_ids = application_searcher.search(lat, lon, accuracy)
 	
 	return response_generator.ok_with_message(create_json_from_app_ids(app_ids))
 	
 	
-	
-def create_json_from_app_ids(app_ids):
+def create_json_from_app_ids(apps):
 
 	response = {}
 	appsArray = []
 	appsDict = {}
 
-
-	for app_id in app_ids:
-	
+	for app in apps:
+		
+		app_id = app.app_id_appstore
+		
 		try:
 			detail = AppDetails.objects.filter(app_id=app_id)
-			app = Application.objects.get(app_id=app_id)
+			app = Application.objects.get(app_id_appstore=app_id)
 			
 		except AppDetails.DoesNotExist:
 			continue
@@ -102,12 +101,8 @@ def create_json_from_app_ids(app_ids):
 			if app.is_web == 1:
 				appsDict['i'] = [detail.icon_color_1, detail.icon_color_2, detail.icon_color_3, detail.icon_color_4]
 			else:
-				appsDict['i'] = detail.icon_url
-						
-		'''
-		Get app rating
-		'''
-		appsDict['r'] = '%f' % app.rating
+				appsDict['i'] = app.icon_url
+					
 			
 		'''
 		Check app price, storefront and currency code
@@ -119,7 +114,7 @@ def create_json_from_app_ids(app_ids):
 		'''
 		try:
 			firstPrice = AppPrice.objects.filter(app_id=app_id)[0]
-			appsDict['pr'] = firstPrice.price
+			appsDict['pr'] = firstPrice.retail_price
 		except AppPrice.DoesNotExist:					
 			continue
 			'''

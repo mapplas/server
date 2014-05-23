@@ -12,19 +12,8 @@ urlpatterns = patterns('rest_api.views',
     # Uncomment the next line to enable the admin:
     url(r'^admin/', include(admin.site.urls)),
     
-#     url(r'^api/user/add/$', 'user_register'),
-#     
-#     url(r'^api/apps/(?P<multiple>\d+)/$', 'applications'),
-#     
-#     url(r'^api/user/pin/$', 'app_pin_unpin'),
-#     url(r'^api/user/block/$', 'app_block_unblock'),
-#     url(r'^api/user/share/$', 'app_share'),
-#     
-#     url(r'^api/app-detail/(?P<app_id>[a-zA-Z0-9_.]+)/$', 'app_detail'),
-#     
-#     url(r'^api/user-apps-info/(?P<user_id>\d+)/$', 'user_apps'),
-#     
-#     url(r'^api/installed-apps/$', 'installed_apps'),
-#     
-#     url(r'^api/user/app-interaction/$', 'user_appstore_interaction'),
+    # API url
+    url(r'^api/city/(?P<city_id>\d+)/$', 'api_apps_for_city'),
+	url(r'^api/position/lat=(?P<lat>[+-]?(\d+(\.\d*)?|\.\d+)([eE][+-]?\d+)?)&lon=(?P<lon>[+-]?(\d+(\.\d*)?|\.\d+)([eE][+-]?\d+)?)&acc=(?P<accuracy>[+-]?(\d+(\.\d*)?|\.\d+)([eE][+-]?\d+)?)/$', 'api_apps_for_position'),
+  
 )
